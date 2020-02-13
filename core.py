@@ -1,7 +1,7 @@
 #!/usr/bin/python3.7
 
 ###############################################################################
-#   Copyright (C) 2020 Eric Craw, KF7EEL <kf7eel@qsl.net>
+#   Copyright (C) 2012 Eric Craw, KF7EEL <kf7eel@qsl.net>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ global AIS, aprs_message_packet, post_path
 
 aprs_message_packet = None
 
-AIS_send = aprslib.IS(aprs_callsign, passwd=aprs_passcode,host='rotate.aprs2.net', port=14580)
+AIS_send = aprslib.IS(aprs_callsign, passwd=aprs_passcode,host=aprs_is_send_host, port=aprs_is_send_port)
 
 AIS = aprslib.IS(aprs_callsign, passwd=aprs_passcode, host=aprs_is_host, port=aprs_is_port)
 
@@ -125,7 +125,7 @@ def reply_aprs(message):
         time.sleep(1)
         print('Sending...')
         from_space = parse_packet['from']
-        AIS_send.sendall(aprs_callsign + '>APRS,TCPIP*:' + ':' + aprs_reply_to.ljust(9) + ': ' + message + '{' + str(random.randint(1,99)) + str(random.randint(1,9))) #str(len(message)) + time.strftime('%s'))
+        AIS_send.sendall(aprs_callsign + '>APRS,TCPIP*:' + ':' + aprs_reply_to.ljust(9) + ':' + message + '{' + str(random.randint(1,99)) + str(random.randint(1,9))) #str(len(message)) + time.strftime('%s'))
         print(aprs_callsign + '>APRS,TCPIP*:' + ':' + aprs_reply_to.ljust(9) + ': ' + message + '{' + str(random.randint(1,99)) + str(random.randint(1,9)))
         time.sleep(1)
         AIS_send.close()
@@ -199,6 +199,8 @@ def aprs_receive_loop(packet):
     post_id = time.strftime('%m%d%y%H%M') + str(random.randint(1,9))
     post_path_no_call = post_data_dir
     post_file = post_path + post_id + '.md'
+    aprs_blog_post_hashtag = ''
+    aprs_blog_post_hashtag_markdown = ''
     #########################################
  #   print('Bulletin from: ' + parse_packet['from'] + ' Message: ' + parse_packet['message_text'])
 
@@ -286,30 +288,35 @@ def aprs_receive_loop(packet):
                             except:
                                 print('System Command failed, exception raised.')
                                 reply_aprs('SYS CMD failed. Exception raised.')
-                        if '!!' == parse_packet['message_text']:
-                            reply_aprs('Unknown')
 
-                        #else:
-                         #   aprs_ack()
-                          #  print('Command not found')
-                           # reply_aprs('Command not found or recognized')
+
+
 ######################---TDS---#############################
 
                         #if 1 == use_tds:
                          #   print('TDS enabled')
                           #  print(parse_packet['message_text'])
 
-                        if 'B-' in parse_packet['message_text'] and 'T-' in parse_packet['message_text']:
+                        if 'B-' in parse_packet['message_text']: # and 'T-' in parse_packet['message_text']:
                             aprs_ack()
+                            aprs_blog_post_title = 'Post from '
+                            aprs_blog_post_hastag = ''
+                            aprs_blog_post_hashtag_markdown = ''
+                            aprs_blog_post_text = aprs_blog_post_custom_id = re.sub("T-.*|I-.*|B-", "", parse_packet['message_text'])
                             if 'I-' in parse_packet['message_text']:
                                     aprs_blog_post_custom_id = re.sub(".*I-", "", parse_packet['message_text'])
                                     print('Custom ID: ' + aprs_blog_post_custom_id)
                                     post_id = aprs_blog_post_custom_id
                                 #if 'I-' not in parse_packet['message_text']:
-                            aprs_blog_post_text = re.sub("T-.*|B-", "", parse_packet['message_text'])
-                            aprs_blog_post_title = re.sub(".*T|T-|-|I-.*", "", parse_packet['message_text']) + ' - '
+                            if '#' in parse_packet['message_text']:
+                                aprs_blog_post_hastag = re.sub(".* #| .*", "", parse_packet['message_text'])
+                                aprs_blog_post_hashtag_markdown = ' *Hashtag: [#' + aprs_blog_post_hastag + '](' + aprs_blog_tag_logation + aprs_blog_post_hastag + ')*'
+                                print('Hashtags: ' + aprs_blog_post_hastag)
+                            if 'T-' in parse_packet['message_text']:
+                                aprs_blog_post_title = re.sub(".*T|T-|-|I-.*", "", parse_packet['message_text']) + ' - '
+                                aprs_blog_post_text = re.sub("T-.*|B-", "", parse_packet['message_text'])
                             print(aprs_blog_post_text)
-                            print('"'+aprs_blog_post_title+'"')
+                            print(aprs_blog_post_title)
                             print("APRS Blog Post: " + aprs_blog_post_text + " - From: " + call)
                             dict_data = post_id + ' : ' + aprs_blog_post_text + '\n'
                             #######Post Template#################################################################################################
@@ -317,7 +324,7 @@ def aprs_receive_loop(packet):
 Title: ''' + aprs_blog_post_title + call + time.strftime(' - %m/%d/%Y - %H:%M:%S PST') + '''
 Date: ''' + time.strftime('%Y-%m-%d %H:%M:%S') + '''
 Category: ''' + 'APRS Blog' + '''
-Tags: ''' + aprs_call + '''
+Tags: ''' + aprs_call + ', ' + aprs_blog_post_hastag + '''
 Authors: ''' + call + '''
 
 ------
@@ -325,11 +332,14 @@ Authors: ''' + call + '''
 ''' + aprs_blog_post_text + '''
 ------
 
+
+''' + aprs_blog_post_hashtag_markdown  + '''
+
 ------
 ###### Post ID: ''' + post_id + '''
-###### Raw APRS packet: *''' + parse_packet['raw'] + ''' *
+###### APRS packet received: *''' + parse_packet['raw'] + '''*
 
-[Track on APRS.fi](https://aprs.fi/info/a/''' + aprs_call + ''') | QRZ here | QRZCQ | [Callook](https://callook.info/''' + call + ''')
+[Track on APRS.fi](https://aprs.fi/info/a/''' + aprs_call + ''') | [Find on QRZCQ](https://qrzcq.com/call/''' + call + ''') | [Look up on Callook](https://callook.info/''' + call + ''')
 '''
                             #####################################################################################################################
                                                     #print(post)
@@ -376,84 +386,12 @@ Authors: ''' + call + '''
                                     write_post.write(post)
                                     write_post.close()
                             reply_aprs('Posted. ID: ' + post_id)
+#####
 
-                        if 'B-' in parse_packet['message_text'] and 'T-' not in parse_packet['message_text']:
-                                    aprs_ack()
-                                    if 'I-' in parse_packet['message_text']:
-                                        post_id = re.sub("T-.*|I-|.*I-|B-", "", parse_packet['message_text'])
-                                        print('Custom post ID: ' + post_id)
-                                    aprs_blog_post_text = aprs_blog_post_custom_id = re.sub("T-.*|I-.*|B-", "", parse_packet['message_text'])
-                                    print("APRS Blog Post: " + aprs_blog_post_text + " - From: " + call)
-                                    dict_data = post_id + ' : ' + aprs_blog_post_text + '\n'
-
-                            #######Post Template#################################################################################################
-                                    post = '''\
-Title: Post from ''' + call + time.strftime(' - %m/%d/%Y - %H:%M:%S PST') + '''
-Date: ''' + time.strftime('%Y-%m-%d %H:%M:%S') + '''
-Category: ''' + 'APRS Blog' + '''
-Tags: ''' + aprs_call + '''
-Authors: ''' + call + '''
-
-------
-
-''' + aprs_blog_post_text + '''
-------
-
-------
-
-###### Post ID: ''' + post_id + '''
-###### Raw APRS packet: *''' + parse_packet['raw'] + ''' *
-
-[Track on APRS.fi](https://aprs.fi/info/a/''' + aprs_call + ''') | QRZ here | QRZCQ | [Callook](https://callook.info/''' + call + ''')
-'''
-                            #####################################################################################################################
-                                                    #print(post)
-                                    try:
-                                                        d = {}
-                                                        with open(post_path + "dict.txt") as f:
-                                                            for line in f:
-                                                                (key, val) = line.split(' : ', 1)
-                                                                #d[int(key)] = val
-                                                                d[key] = val
-                                                            #print(d)
-                                                            print('Added post to internal dict')
-                                                            f = open(post_path + "dict.txt","a")
-                                                            f.write(str(dict_data))
-                                                            f.close()
-                                    except:
-                                                        Path(post_path).mkdir(parents=True, exist_ok=True)
-                                                        Path(post_path + 'dict.txt').touch()
-                                                        print('excepted, created folder with dict file')
-                                                        d = {}
-                                                        with open(post_path + "dict.txt") as f:
-                                                            for line in f:
-                                                                (key, val) = line.split(' : ', 1)
-                                                                #d[int(key)] = val
-                                                                d[key] = val
-                                                            #print(d)
-                                                            print('Added post to internal dict')
-                                                            f = open(post_path + "dict.txt","a")
-                                                            f.write(str(dict_data))
-                                                            f.close()
-                                                            print('created path and dict file')
-
-                                
-                            #print(add_dict_entry)
-
-                                    try:
-                                        write_post = open(post_path + post_id + '.md', 'w')
-                                        write_post.write(post)
-                                        write_post.close()
-                                    except:
-                                        Path(post_path).mkdir(parents=True, exist_ok=True)
-                                        time.sleep(3)
-                                        write_post = open(post_path + post_id + '.md', 'w')
-                                        write_post.write(post)
-                                        write_post.close()
-                                    reply_aprs('Posted. ID: ' + post_id)
-                        if 'BLOG DEL' in parse_packet['message_text']:
+#####
+                        if 'B DEL' in parse_packet['message_text']:
                                 aprs_ack()
-                                aprs_blog_post_delete = re.sub("BLOG DEL ", "", parse_packet['message_text'])
+                                aprs_blog_post_delete = re.sub("B DEL ", "", parse_packet['message_text'])
                                 print(aprs_blog_post_delete)
                                 os.system('rm ' + post_path + aprs_blog_post_delete + '.md')
                                 print('deleted post ID: ' + aprs_blog_post_delete)
@@ -482,10 +420,11 @@ Authors: ''' + call + '''
                                         f.close()
                                         print('sucessfully deleted')
                                         reply_aprs('Deleted post ID: ' + aprs_blog_post_delete)
+                                        
                                 except:
                                     print('unable to delete')
                                     reply_aprs('Unable to delete post: ' + aprs_blog_post_delete)
-                        if 'BLOG ' in parse_packet['message_text']:
+                        if 'BF ' in parse_packet['message_text']:
                                 aprs_ack()
                                 aprs_blog_post_retrieve_cmd = re.sub("BLOG ", "", parse_packet['message_text'])
                                 #print(aprs_blog_post_retrieve_cmd)
@@ -505,12 +444,14 @@ Authors: ''' + call + '''
                                         print(d.get(aprs_blog_post_retrieve_id_cmd))
                                         if d.get(aprs_blog_post_retrieve_id_cmd) == None:
                                             print('No entries found for that ID')
-                                            reply_aprs('No post found for ID: ' + post_id)
+                                            reply_aprs('No post found for ID: ' + d.get(aprs_blog_post_retrieve_id_cmd).strip('\n'))
+                                            
                                         else:
                                             print('Sending APRS packet...')
                                             # add no ack message pack to announce incoming message
                                             reply_aprs_no_ack('Post from ' + aprs_blog_post_retrieve_call_cmd + ' ID: ' + aprs_blog_post_retrieve_id_cmd)
                                             reply_aprs(d.get(aprs_blog_post_retrieve_id_cmd).strip('\n'))
+                                            
                                 except:
                                     print('Post or author not found')
                                     reply_aprs('Post not found')
@@ -524,6 +465,12 @@ Authors: ''' + call + '''
                                 else:
                                     print('Your current callsign w/ SSID must be in message to confirm')
                                     reply_aprs('Must include current callsign and SSID')
+                        #else:
+                        #    aprs_ack()
+                        #    print('Command not found')
+                        #    reply_aprs('Command not found or recognized')
+                        #if '!!' == parse_packet['message_text']:
+                        #    reply_aprs('Unknown')
 
                         else:
                                 print('Message, but not to us')
