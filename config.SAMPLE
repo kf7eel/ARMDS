@@ -1,0 +1,109 @@
+#!/usr/bin/python3.7
+
+###############################################################################
+#   Copyright (C) 2020 Eric Craw, KF7EEL <kf7eel@qsl.net>
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software Foundation,
+#   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+###############################################################################
+
+# Contains all variables and functions for program
+# This is a split from the shark-py-sms project to allow an APRS only setup.
+# This is to accomodate users who do not use DMR but wish to still have an interactive
+# messaging setup. This should work with any APRS compatable radio, even bridged DMR systems.
+# https://github.com/kf7eel/shark-py-sms
+
+# Feel free to modify and improve.
+
+
+###############################################################################
+#CONFIGURATION VARIABLES
+###############################################################################
+
+#############################----APRS----######################################
+
+# Callsign and SSID
+aprs_callsign = 'N0CALL-10'
+
+# APRS host for receive loop, default rotate.aprs.net
+aprs_is_host = 'rotate.aprs.net'
+aprs_is_port = 14580
+
+# APRS host and port for sending packets
+aprs_is_send_host = 'rotate.aprs2.net'
+aprs_is_send_port = 14580
+
+# Use YAAC to send APRS messages, 0 = off, 1 = on
+use_yaac = 0
+
+yaac_host = 'localhost'
+yaac_port = 8010
+
+# APRS-IS passcode
+aprs_passcode = '12345'
+
+# Geographical info
+latitude = '4726.18N' # Latitude, use this format
+longitude = '12019.64W' # Longitude, use this format
+altitude = '000679' # Altitude in feet
+aprs_comment = 'ARMDS'
+aprs_beacon_1_comment = 'https://github.com/kf7eel/ARMDS'
+aprs_beacon_2_comment = 'Other commands available'
+aprs_symbol_table = '/' #Primary table
+aprs_symbol = '-' # "House" symbol
+
+# Location packet
+#location_packet = hotspot_callsign + '>APRS,TCPIP*:' + '=' + latitude + '/' + longitude + aprs_symbol + aprs_symbol_table + 'A=' + altitude + ' ' + aprs_comment
+
+
+# Filter to be sent to server, required for incoming packets. 100km radius of Ellensberg, WA
+# Must change this to your QTH and change radius.
+aprs_filter = 'r/47/-120/200'
+
+
+# ! - fixed short format, = - message capable,
+
+# Enable logging
+#logging.basicConfig(level=logging.DEBUG) # level=10, DEBUG for most info
+
+###########################----E-Mail----######################################
+
+#--------------------------------------------------------#
+# User, Password, and smtp server of your email account. #
+email_user = 'email user'                              
+email_password = 'email password'                     
+email_server = 'email server'                             
+smtp_port = 465                                          #
+pop_port = 995                                           #
+#--------------------------------------------------------#
+
+
+###############################---Tiny Data System---###########################
+
+# Enable Tiny Data System, 0 = disabled, 1 = enabled
+
+use_tds = 1
+
+# files are stored in the following format:
+# CALLSIGN/post data
+post_data_dir = 'path to post data'
+
+aprs_blog_tag_logation = '../tags/'
+
+aprs_blog_category = 'User APRS Blogs'
+
+### System definitions - dont touch
+
+line_break = '\n'
+
