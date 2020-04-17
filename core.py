@@ -1,7 +1,7 @@
 #!/usr/bin/python3.7
 
 ###############################################################################
-#   Copyright (C) 2012 Eric Craw, KF7EEL <kf7eel@qsl.net>
+#   Copyright (C) 2020 Eric Craw, KF7EEL <kf7eel@qsl.net>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -12,7 +12,7 @@
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
-#
+##
 #   You should have received a copy of the GNU General Public License
 #   along with this program; if not, write to the Free Software Foundation,
 #   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
@@ -28,6 +28,7 @@
 # messaging setup. This should work with any APRS compatable radio, even bridged DMR systems.
 # https://github.com/kf7eel/shark-py-sms
 
+# APRS is a registered trademark Bob Bruninga, WB4APR
 
 # Feel free to modify and improve.
 
@@ -82,16 +83,20 @@ def aprs_ack():
     print('Send ACK')
     time.sleep(1)
     if use_yaac == 0:
-        print('Connecting to APRS-IS')
-        AIS_send.connect()
-        time.sleep(1)
-        print('Sending...')
-        from_space = parse_packet['from']
-        AIS_send.sendall(aprs_callsign + '>APRS,TCPIP*:' + ':' + from_space.ljust(9) + ':ack'+parse_packet['msgNo'])
-        print(aprs_callsign + '>APRS,TCPIP*:' + ':' + from_space.ljust(9) + ':ack'+parse_packet['msgNo'])
-        time.sleep(1)
-        AIS_send.close()
-        #time.sleep(1)
+        if 'msgNo' in parse_packet:
+            print('Connecting to APRS-IS')
+            AIS_send.connect()
+            time.sleep(1)
+            print('Sending...')
+            from_space = parse_packet['from']
+            AIS_send.sendall(aprs_callsign + '>APRS,TCPIP*:' + ':' + from_space.ljust(9) + ':ack'+parse_packet['msgNo'])
+            print(aprs_callsign + '>APRS,TCPIP*:' + ':' + from_space.ljust(9) + ':ack'+parse_packet['msgNo'])
+            time.sleep(1)
+            AIS_send.close()
+            #time.sleep(1)
+        else:
+            print('No ACK required, not sending ACK.')
+            
     if use_yaac == 1:
         print('todo')
 def reply_aprs_no_ack(message):
@@ -159,31 +164,31 @@ def aprs_send_msg(aprs_to, aprs_message_text):
     AIS_send.close()
    
    
-def aprs_location():
-    AIS_send.connect()
-    location_packet = aprs_callsign + '>APRS,TCPIP*:' + '=' + latitude + '/' + longitude + aprs_symbol + aprs_symbol_table + 'A=' + altitude + ' ' + aprs_comment
-    print('Sending location packet.')
-    print(location_packet)
-    AIS_send.sendall(location_packet)
-    time.sleep(5)
-    AIS_send.close()    
-def aprs_beacon_1():
-    AIS_send.connect()
-    beacon_1_packet = aprs_callsign + '>APRS,TCPIP*:' + '=' + latitude + '/' + longitude + aprs_symbol + aprs_symbol_table + 'A=' + altitude + ' ' + aprs_beacon_1_comment
-    print('Sending beacon 1 packet.')
-    print(beacon_1_packet)
-    AIS_send.sendall(beacon_1_packet)
-    time.sleep(5)
-    AIS_send.close()
-
-def aprs_beacon_2():
-    AIS_send.connect()
-    beacon_2_packet = aprs_callsign + '>APRS,TCPIP*:' + '=' + latitude + '/' + longitude + aprs_symbol + aprs_symbol_table + 'A=' + altitude + ' ' + aprs_beacon_2_comment
-    print('Sending beacon 1 packet.')
-    print(beacon_2_packet)
-    AIS_send.sendall(beacon_2_packet)
-    time.sleep(5)
-    AIS_send.close()
+##def aprs_location():
+##    AIS_send.connect()
+##    location_packet = aprs_callsign + '>APRS,TCPIP*:' + '=' + latitude + '/' + longitude + aprs_symbol + aprs_symbol_table + 'A=' + altitude + ' ' + aprs_comment
+##    print('Sending location packet.')
+##    print(location_packet)
+##    AIS_send.sendall(location_packet)
+##    time.sleep(5)
+##    AIS_send.close()    
+##def aprs_beacon_1():
+##    AIS_send.connect()
+##    beacon_1_packet = aprs_callsign + '>APRS,TCPIP*:' + '=' + latitude + '/' + longitude + aprs_symbol + aprs_symbol_table + 'A=' + altitude + ' ' + aprs_beacon_1_comment
+##    print('Sending beacon 1 packet.')
+##    print(beacon_1_packet)
+##    AIS_send.sendall(beacon_1_packet)
+##    time.sleep(5)
+##    AIS_send.close()
+##
+##def aprs_beacon_2():
+##    AIS_send.connect()
+##    beacon_2_packet = aprs_callsign + '>APRS,TCPIP*:' + '=' + latitude + '/' + longitude + aprs_symbol + aprs_symbol_table + 'A=' + altitude + ' ' + aprs_beacon_2_comment
+##    print('Sending beacon 1 packet.')
+##    print(beacon_2_packet)
+##    AIS_send.sendall(beacon_2_packet)
+##    time.sleep(5)
+##    AIS_send.close()
 
 def aprs_receive_loop(packet):
     global parse_packet, aprs_message_packet, AIS_send
@@ -193,8 +198,8 @@ def aprs_receive_loop(packet):
 
     ### TDS Definitions ###################
     aprs_call = parse_packet['from']
-    call = parse_packet['from']
-    call = re.sub("-.", "", aprs_call)
+    #call = parse_packet['from']
+    call = re.sub("-.*", "", aprs_call)
     post_path = post_data_dir + call + '/'
     post_id = time.strftime('%m%d%y%H%M') + str(random.randint(1,9))
     post_path_no_call = post_data_dir
@@ -225,16 +230,16 @@ def aprs_receive_loop(packet):
                   # Filter @ out os SMS, creat another if statement at this level for APRS implimentation.
                                 if '@' in parse_packet['message_text']:
                                         print("Perparing email...")
+                                        aprs_ack()
                                         for i in parse_packet['message_text'].split():
                                             if i.startswith("E-"):
                                             #print(i)
-                                                to_email = i.replace("E-", "")
+                                                to_email = re.sub("E-| .*", "", parse_packet['message_text'])
                                                 print("Recipient: " + to_email)
-                                                email_body = parse_packet['message_text']
+                                                email_body = re.sub("E-" + to_email, "", parse_packet['message_text'])
                                                 print("Message: " + email_body)
                                                 print("Sending email via SMTP")
                                                 email_send(to_email, email_body)
-                                                aprs_ack()
                         
                                             else:
                                                 print("E- in message, no @, not sending email")
@@ -297,24 +302,27 @@ def aprs_receive_loop(packet):
                          #   print('TDS enabled')
                           #  print(parse_packet['message_text'])
 
-                        if 'B-' in parse_packet['message_text']: # and 'T-' in parse_packet['message_text']:
-                            aprs_ack()
+                        if '@P' in parse_packet['message_text']: # and 'T-' in parse_packet['message_text']:
+                            try:
+                                aprs_ack()
+                            except:
+                                pass
                             aprs_blog_post_title = 'Post from '
                             aprs_blog_post_hastag = ''
                             aprs_blog_post_hashtag_markdown = ''
-                            aprs_blog_post_text = aprs_blog_post_custom_id = re.sub("T-.*|I-.*|B-", "", parse_packet['message_text'])
-                            if 'I-' in parse_packet['message_text']:
-                                    aprs_blog_post_custom_id = re.sub(".*I-", "", parse_packet['message_text'])
+                            aprs_blog_post_text = aprs_blog_post_custom_id = re.sub("@T.*|@I.*|@P", "", parse_packet['message_text'])
+                            if '@I' in parse_packet['message_text']:
+                                    aprs_blog_post_custom_id = re.sub(".*@I", "", parse_packet['message_text'])
                                     print('Custom ID: ' + aprs_blog_post_custom_id)
                                     post_id = aprs_blog_post_custom_id
                                 #if 'I-' not in parse_packet['message_text']:
                             if '#' in parse_packet['message_text']:
                                 aprs_blog_post_hastag = re.sub(".* #| .*", "", parse_packet['message_text'])
-                                aprs_blog_post_hashtag_markdown = ' *Hashtag: [#' + aprs_blog_post_hastag + '](' + aprs_blog_tag_logation + aprs_blog_post_hastag + ')*'
+                                aprs_blog_post_hashtag_markdown = ' *Hashtag: [#' + aprs_blog_post_hastag + '](' + aprs_blog_tag_logation + aprs_blog_post_hastag + '.html)*'
                                 print('Hashtags: ' + aprs_blog_post_hastag)
-                            if 'T-' in parse_packet['message_text']:
-                                aprs_blog_post_title = re.sub(".*T|T-|-|I-.*", "", parse_packet['message_text']) + ' - '
-                                aprs_blog_post_text = re.sub("T-.*|B-", "", parse_packet['message_text'])
+                            if '@I' in parse_packet['message_text']:
+                                aprs_blog_post_title = re.sub(".*T|@T|-|@I.*", "", parse_packet['message_text']) + ' - '
+                                aprs_blog_post_text = re.sub("@T.*|@P", "", parse_packet['message_text'])
                             print(aprs_blog_post_text)
                             print(aprs_blog_post_title)
                             print("APRS Blog Post: " + aprs_blog_post_text + " - From: " + call)
@@ -323,7 +331,7 @@ def aprs_receive_loop(packet):
                             post = '''\
 Title: ''' + aprs_blog_post_title + call + time.strftime(' - %m/%d/%Y - %H:%M:%S PST') + '''
 Date: ''' + time.strftime('%Y-%m-%d %H:%M:%S') + '''
-Category: ''' + 'APRS Blog' + '''
+Category: ''' + aprs_blog_category + '''
 Tags: ''' + aprs_call + ', ' + aprs_blog_post_hastag + '''
 Authors: ''' + call + '''
 
@@ -336,8 +344,9 @@ Authors: ''' + call + '''
 ''' + aprs_blog_post_hashtag_markdown  + '''
 
 ------
-###### Post ID: ''' + post_id + '''
-###### APRS packet received: *''' + parse_packet['raw'] + '''*
+##### Post ID: ''' + post_id + '''
+
+##### APRS packet received: *''' + parse_packet['raw'] + '''*
 
 [Track on APRS.fi](https://aprs.fi/info/a/''' + aprs_call + ''') | [Find on QRZCQ](https://qrzcq.com/call/''' + call + ''') | [Look up on Callook](https://callook.info/''' + call + ''')
 '''
@@ -389,9 +398,12 @@ Authors: ''' + call + '''
 #####
 
 #####
-                        if 'B DEL' in parse_packet['message_text']:
-                                aprs_ack()
-                                aprs_blog_post_delete = re.sub("B DEL ", "", parse_packet['message_text'])
+                        if '@P DEL' in parse_packet['message_text']:
+                                try:
+                                    aprs_ack()
+                                except:
+                                    pass
+                                aprs_blog_post_delete = re.sub("@P DEL ", "", parse_packet['message_text'])
                                 print(aprs_blog_post_delete)
                                 os.system('rm ' + post_path + aprs_blog_post_delete + '.md')
                                 print('deleted post ID: ' + aprs_blog_post_delete)
@@ -424,9 +436,12 @@ Authors: ''' + call + '''
                                 except:
                                     print('unable to delete')
                                     reply_aprs('Unable to delete post: ' + aprs_blog_post_delete)
-                        if 'BF ' in parse_packet['message_text']:
-                                aprs_ack()
-                                aprs_blog_post_retrieve_cmd = re.sub("BLOG ", "", parse_packet['message_text'])
+                        if '@R ' in parse_packet['message_text']:
+                                try:
+                                    aprs_ack()
+                                except:
+                                    pass
+                                aprs_blog_post_retrieve_cmd = re.sub("@R ", "", parse_packet['message_text'])
                                 #print(aprs_blog_post_retrieve_cmd)
                                 aprs_blog_post_retrieve_id_cmd = re.sub(".*ID ", "", aprs_blog_post_retrieve_cmd)
                                 #print(aprs_blog_post_retrieve_id_cmd)
@@ -456,8 +471,11 @@ Authors: ''' + call + '''
                                     print('Post or author not found')
                                     reply_aprs('Post not found')
 
-                        if 'BLOGNUKE ME' in parse_packet['message_text']:
-                                aprs_ack()
+                        if 'POSTDEL ME' in parse_packet['message_text']:
+                                try:
+                                    aprs_ack()
+                                except:
+                                    pass
                                 if aprs_call in parse_packet['message_text']:
                                     os.system('rm -R ' + post_path)
                                     print('Deleted all data for: ' + call)
@@ -497,7 +515,7 @@ def email_send(to_email, email_body):
     sent_from = email_user
     to = [to_email]
     subject = 'APRS Message from ' + str(parse_packet['from'])
-    body = str(email_body + '\n' + 'Insert reply directions here')
+    body = str('APRS message from: ' + str(parse_packet['from']) + '.' + email_body + '\n' + '\nThis is an APRS message delivered to you via Amateur Radio Micro Data Service (ARMDS).\n\nYou may send an APRS message by .....')
 
     email_text = """\
 From: %s
@@ -514,6 +532,7 @@ Subject: %s
         server.sendmail(sent_from, to, email_text)
         server.close()
         reply_aprs('E-Mail sent to ' + to_email)
-    except:
+    except Exception as e:
+        print(e)
         print('Sending email failed')
         reply_aprs('Sending Failed')
