@@ -1,4 +1,4 @@
-#!/usr/bin/python3.7
+#!/usr/bin/python3
 
 ###############################################################################
 #   Copyright (C) 2019 Eric Craw, KF7EEL <kf7eel@qsl.net>
@@ -18,7 +18,7 @@
 #   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 ###############################################################################
 
-# Version "1", by Eric, KF7EEL
+# Last modified on 9-26-2020, by Eric, KF7EEL
 
 # This is a split from the shark-py-sms project to allow an APRS only setup.
 # This is to accomodate users who do not use DMR but wish to still have an interactive
@@ -37,8 +37,3 @@ cmd_list = {
 'EX3': example3
 
 }
-
-
-
-
-#print(dict.keys())

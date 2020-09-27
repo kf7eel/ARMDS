@@ -12,37 +12,42 @@
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
-#
+##
 #   You should have received a copy of the GNU General Public License
 #   along with this program; if not, write to the Free Software Foundation,
 #   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 ###############################################################################
 
-# Version "1", by Eric, KF7EEL
+# Modified 09-26-2020, by Eric, KF7EEL
 
-# Interactive APRS script. 
-# This is a split from the shark-py-sms project to allow an APRS only setup.
-# This is to accomodate users who do not use DMR but wish to still have an interactive
-# messaging setup. This should work with any APRS compatable radio, even bridged DMR systems.
-# https://github.com/kf7eel/shark-py-sms
+# Required for sending packets
+# APRS receive script and required for APRS interactive script.
 
-# Feel free to modify and improve.
-
+import os
 from core import *
 
-global AIS
+#global AIS
 
+print(aprs_callsign)
+print(aprs_passcode)
+print(aprs_is_send_host)
+print(aprs_is_send_port)
+send_AIS = aprslib.IS(aprs_callsign, passwd=aprs_passcode,host=aprs_is_send_host, port=aprs_is_send_port)
+#send_AIS.set_filter(aprs_filter)
 
-AIS = aprslib.IS(aprs_callsign, host=aprs_is_host, passwd=aprs_passcode, port=aprs_is_port)
+send_AIS.connect()
 
-#AIS = aprslib.IS('N0CALL', host='rotate.aprs.net', passwd='-1', port=10152)
-
-# Sends filter settings to APRS servver
-AIS.set_filter(aprs_filter)
-# Connect to APRS-IS
-AIS.connect()
-
-print('Initialize')
-AIS.consumer(aprs_receive_loop, raw=True)
+#Start loop, execute every second
+while 4<5:
+    time.sleep(1)
+    #Loop through packet file driectroy to read, send, and delete packets
+    for packet_file in os.listdir(packet_send_folder):
+        #print(packet_file)
+        with open(packet_send_folder + packet_file) as packet_contents:
+            upload_packet = packet_contents.read().strip('\n')
+            print(upload_packet)
+            send_AIS.sendall(upload_packet)
+            os.remove(packet_send_folder + packet_file)
+            time.sleep(1)
 
 

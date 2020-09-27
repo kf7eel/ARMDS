@@ -1,4 +1,4 @@
-#!/usr/bin/python3.7
+#!/usr/bin/python3
 
 ###############################################################################
 #   Copyright (C) 2020 Eric Craw, KF7EEL <kf7eel@qsl.net>
@@ -34,34 +34,41 @@
 #############################----APRS----######################################
 
 # Callsign and SSID
-aprs_callsign = 'N0CALL-10'
+aprs_callsign = 'N0CALL'
 
 # APRS host for receive loop, default rotate.aprs.net
-aprs_is_host = 'rotate.aprs.net'
+aprs_is_host = 'rotate.aprs2.net'
 aprs_is_port = 14580
 
-# APRS host and port for sending packets
-aprs_is_send_host = 'rotate.aprs2.net'
-aprs_is_send_port = 14580
+### APRS host and port for sending packets
+##aprs_is_send_host = 'rotate.aprs.net'
+##aprs_is_send_port = 14580
 
-# Use YAAC to send APRS messages, 0 = off, 1 = on
-use_yaac = 0
-
-yaac_host = 'localhost'
-yaac_port = 8010
+### Use YAAC to send APRS messages, 0 = off, 1 = on
+##use_yaac = 0
+##
+##yaac_host = 'localhost'
+##yaac_port = 8010
 
 # APRS-IS passcode
-aprs_passcode = '12345'
+aprs_passcode = '123456'
 
 # Geographical info
-latitude = '4726.18N' # Latitude, use this format
-longitude = '12019.64W' # Longitude, use this format
+latitude = '0000.  N' # Latitude, use this format
+longitude = '00000.  W' # Longitude, use this format
 altitude = '000679' # Altitude in feet
-aprs_comment = 'ARMDS'
-aprs_beacon_1_comment = 'https://github.com/kf7eel/ARMDS'
-aprs_beacon_2_comment = 'Other commands available'
+aprs_1_comment = 'Comment 1'
+aprs_2_comment = 'Comment 2'
+aprs_3_comment = 'Comment 3'
+aprs_4_comment = 'Comment 4'
+aprs_status_text_1 = 'Status 1'
+aprs_status_text_2 = 'Status 2'
+aprs_status_text_3 = 'Status 3'
+
 aprs_symbol_table = '/' #Primary table
-aprs_symbol = '-' # "House" symbol
+aprs_symbol = 'I' # "File Server - ?, TCP-IP - I" symbol
+
+
 
 # Location packet
 #location_packet = hotspot_callsign + '>APRS,TCPIP*:' + '=' + latitude + '/' + longitude + aprs_symbol + aprs_symbol_table + 'A=' + altitude + ' ' + aprs_comment
@@ -69,7 +76,8 @@ aprs_symbol = '-' # "House" symbol
 
 # Filter to be sent to server, required for incoming packets. 100km radius of Ellensberg, WA
 # Must change this to your QTH and change radius.
-aprs_filter = 'r/47/-120/200'
+#aprs_filter = 'r/47/-120/200'
+aprs_filter = 't/m'
 
 
 # ! - fixed short format, = - message capable,
@@ -81,9 +89,9 @@ aprs_filter = 'r/47/-120/200'
 
 #--------------------------------------------------------#
 # User, Password, and smtp server of your email account. #
-email_user = 'email user'                              
-email_password = 'email password'                     
-email_server = 'email server'                             
+email_user = 'user@example.com'                              
+email_password = 'password'                     
+email_server = 'mail.example.com'                             
 smtp_port = 465                                          #
 pop_port = 995                                           #
 #--------------------------------------------------------#
@@ -95,15 +103,17 @@ pop_port = 995                                           #
 
 use_tds = 1
 
-# files are stored in the following format:
-# CALLSIGN/post data
-post_data_dir = 'path to post data'
+post_data_dir = 'path to location for posts in markdown format'
 
 aprs_blog_tag_logation = '../tags/'
 
 aprs_blog_category = 'User APRS Blogs'
 
+twtxt_file_location = 'location for twtxt files'
+
 ### System definitions - dont touch
+
+packet_send_folder = '/tmp/.armds.packets/'
 
 line_break = '\n'
 

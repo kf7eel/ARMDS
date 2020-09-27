@@ -1,7 +1,7 @@
-#!/usr/bin/python3.7
+#!/usr/bin/python3
 
 ###############################################################################
-#   Copyright (C) 2019 Eric Craw, KF7EEL <kf7eel@qsl.net>
+#   Copyright (C) 2020 Eric Craw, KF7EEL <kf7eel@qsl.net>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 #   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 ###############################################################################
 
-# Version "1", by Eric, KF7EEL
+# Modified: 09-26-2020
 
 # System Functions.
 # This is a split from the shark-py-sms project to allow an APRS only setup.
@@ -78,10 +78,6 @@ def command_help():
     print('ID - returns your DMR ID')
     print('If "TO-" and "@" are in message, will send email to address.')
     print('\n' + "--------------------------------------" + '\n')
-    reply_aprs('1 of 4. All commands are in CAPS. ECHO - replies entier message back to user.')
-    reply_aprs('2 of 4. TIME - current local time. UPTIME - uptime of host system.')
-    reply_aprs('3 of 4. PING - replies with pong. ID - returns your DMR ID.')
-    reply_aprs(' 4 of 4. If "TO-" and "@" are in message, will send email to address')
-
+    reply_aprs('See https://armds.net for help and information.')
         
 

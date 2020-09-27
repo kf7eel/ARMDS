@@ -1,4 +1,4 @@
-#!/usr/bin/python3.7
+#!/usr/bin/python3
 
 ###############################################################################
 #   Copyright (C) 2019 Eric Craw, KF7EEL <kf7eel@qsl.net>
@@ -18,7 +18,7 @@
 #   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 ###############################################################################
 
-# Version "1", by Eric, KF7EEL
+# Last modified on 9-26-2020, by Eric, KF7EEL
 
 # User defined functions. 
 # This is a split from the shark-py-sms project to allow an APRS only setup.
@@ -36,7 +36,7 @@ def example():
 def example2():
     import core
     time.sleep(2)
-    shark.do_send_sms( '1', '2','9', '0', 'this is an example' )
+    reply_aprs('Example 2')
     time.sleep(2)
 def example3():
     from core import reply_aprs

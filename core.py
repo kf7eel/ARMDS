@@ -1,4 +1,4 @@
-#!/usr/bin/python3.7
+#!/usr/bin/python3
 
 ###############################################################################
 #   Copyright (C) 2020 Eric Craw, KF7EEL <kf7eel@qsl.net>
@@ -18,7 +18,7 @@
 #   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 ###############################################################################
 
-# Version "1", by Eric, KF7EEL
+# Modified 09-26-2020, by Eric, KF7EEL
 
 # Contains all functions for program
 # APRS receive script and required for APRS interactive script.
@@ -33,12 +33,9 @@
 # Feel free to modify and improve.
 
 # Import modules
-# DMR SMS
 from config import *
 from user_commands import *
 from system_commands import *
-#from dmr_to_aprs_map import *
-#from user_functions import *
 import user_functions
 import system_commands
 import re, binascii, time, os, datetime, smtplib, random
@@ -48,19 +45,13 @@ from email.header import decode_header
 import aprslib, logging
 from pathlib import Path
 
-#import csv
-
 # APRS Functions
-
 
 global AIS, aprs_message_packet, post_path
 
 aprs_message_packet = None
 
-AIS_send = aprslib.IS(aprs_callsign, passwd=aprs_passcode,host=aprs_is_send_host, port=aprs_is_send_port)
-
-AIS = aprslib.IS(aprs_callsign, passwd=aprs_passcode, host=aprs_is_host, port=aprs_is_port)
-
+AIS = aprslib.IS('N0CALL', passwd='-1', host='rotate.aprs.net', port=10152)
 
 # YAAC TCP send function
 def yaac_aprs_tcp_send(yaac_msg_source, yaac_msg_dest, yaac_message):
@@ -69,13 +60,15 @@ def yaac_aprs_tcp_send(yaac_msg_source, yaac_msg_dest, yaac_message):
     port = yaac_port
 # connection to hostname on the port.
     s.connect((host, port))                               
-#msg = 'KF7EEL>KF7EEL-7:testing again...{27'+'\r'
     yaac_msg = yaac_msg_source + '>APRS::' + yaac_msg_dest.ljust(9) + ':' + yaac_message + '{' + str(len(yaac_message)) + time.strftime('%s') + '\r'
-# Working packet!
-# msg = 'KF7EEL-15>APRS::KF7EEL-7 :test 23{23'+'\r'                              
+                       
     s.send(msg.encode('ascii'))
     s.close()
 
+
+def packet_write(packet_data):
+    with open(packet_send_folder + str(random.randint(1000, 9999)) + '.packet', "w") as packet_write_file:
+        packet_write_file.write(packet_data)
 
 
 def aprs_ack():
@@ -85,15 +78,9 @@ def aprs_ack():
     if use_yaac == 0:
         if 'msgNo' in parse_packet:
             print('Connecting to APRS-IS')
-            AIS_send.connect()
-            time.sleep(1)
-            print('Sending...')
             from_space = parse_packet['from']
-            AIS_send.sendall(aprs_callsign + '>APRS,TCPIP*:' + ':' + from_space.ljust(9) + ':ack'+parse_packet['msgNo'])
+            packet_write(aprs_callsign + '>APRS,TCPIP*:' + ':' + from_space.ljust(9) + ':ack'+parse_packet['msgNo'])
             print(aprs_callsign + '>APRS,TCPIP*:' + ':' + from_space.ljust(9) + ':ack'+parse_packet['msgNo'])
-            time.sleep(1)
-            AIS_send.close()
-            #time.sleep(1)
         else:
             print('No ACK required, not sending ACK.')
             
@@ -105,16 +92,9 @@ def reply_aprs_no_ack(message):
     time.sleep(1)
     aprs_reply_to = parse_packet['from']
     if use_yaac == 0:
-        print('Connecting to APRS-IS')
-        AIS_send.connect()
-        time.sleep(1)
-        print('Sending...')
         from_space = parse_packet['from']
-        AIS_send.sendall(aprs_callsign + '>APRS,TCPIP*:' + ':' + aprs_reply_to.ljust(9) + ': ' + message) #+ '{' + str(random.randint(1,99)) + str(random.randint(1,9))) #str(len(message)) + time.strftime('%s'))
-        print(aprs_callsign + '>APRS,TCPIP*:' + ':' + aprs_reply_to.ljust(9) + ': ' + message) #+ '{' + str(random.randint(1,99)) + str(random.randint(1,9)))
-        time.sleep(1)
-        AIS_send.close()
-        #time.sleep(1)
+        packet_write(aprs_callsign + '>APRS,TCPIP*:' + ':' + aprs_reply_to.ljust(9) + ':' + message)
+        print(aprs_callsign + '>APRS,TCPIP*:' + ':' + aprs_reply_to.ljust(9) + ':' + message) #+ '{' + str(random.randint(1,99)) + str(random.randint(1,9)))
     if use_yaac == 1:
         print('todo')
 
@@ -125,24 +105,14 @@ def reply_aprs(message):
     time.sleep(1)
     aprs_reply_to = parse_packet['from']
     if use_yaac == 0:
-        print('Connecting to APRS-IS')
-        AIS_send.connect()
-        time.sleep(1)
-        print('Sending...')
         from_space = parse_packet['from']
-        AIS_send.sendall(aprs_callsign + '>APRS,TCPIP*:' + ':' + aprs_reply_to.ljust(9) + ':' + message + '{' + str(random.randint(1,99)) + str(random.randint(1,9))) #str(len(message)) + time.strftime('%s'))
-        print(aprs_callsign + '>APRS,TCPIP*:' + ':' + aprs_reply_to.ljust(9) + ': ' + message + '{' + str(random.randint(1,99)) + str(random.randint(1,9)))
-        time.sleep(1)
-        AIS_send.close()
-        #time.sleep(1)
+        packet_write(aprs_callsign + '>APRS,TCPIP*:' + ':' + aprs_reply_to.ljust(9) + ':' + message + '{' + str(random.randint(1,99)) + str(random.randint(1,9)))
+        print(aprs_callsign + '>APRS,TCPIP*:' + ':' + aprs_reply_to.ljust(9) + ':' + message + '{' + str(random.randint(1,99)) + str(random.randint(1,9)))
     if use_yaac == 1:
         print('todo')
 
 def aprs_send_msg(aprs_to, aprs_message_text):
     global aprs_message_packet
-    #print(aprs_to)
-    #print(aprs_message_text.strip('\n'))
-    #b_msg_num = len(aprs_message_text)
     # Generate message number by adding character count to number and dding current time in seconds. Dirty, but works.
     aprs_message_number = str(len(aprs_message_text)) + time.strftime('%s')
     if len(aprs_to) < 9: 
@@ -155,40 +125,10 @@ def aprs_send_msg(aprs_to, aprs_message_text):
     aprs_message_packet = aprs_callsign + '>APRS,TCPIP*:' + ':' + aprs_to_spaces +':'+ aprs_message_text + '{' + aprs_message_number
     #print(aprs_to_spaces)
     print('Connecting to APRS-IS')
-    AIS_send.connect()
     time.sleep(1)
     print('Sending...')
-    AIS_send.sendall(aprs_message_packet)
+    packet_write(aprs_message_packet)
     print(aprs_message_packet)
-    #time.sleep(1)
-    AIS_send.close()
-   
-   
-##def aprs_location():
-##    AIS_send.connect()
-##    location_packet = aprs_callsign + '>APRS,TCPIP*:' + '=' + latitude + '/' + longitude + aprs_symbol + aprs_symbol_table + 'A=' + altitude + ' ' + aprs_comment
-##    print('Sending location packet.')
-##    print(location_packet)
-##    AIS_send.sendall(location_packet)
-##    time.sleep(5)
-##    AIS_send.close()    
-##def aprs_beacon_1():
-##    AIS_send.connect()
-##    beacon_1_packet = aprs_callsign + '>APRS,TCPIP*:' + '=' + latitude + '/' + longitude + aprs_symbol + aprs_symbol_table + 'A=' + altitude + ' ' + aprs_beacon_1_comment
-##    print('Sending beacon 1 packet.')
-##    print(beacon_1_packet)
-##    AIS_send.sendall(beacon_1_packet)
-##    time.sleep(5)
-##    AIS_send.close()
-##
-##def aprs_beacon_2():
-##    AIS_send.connect()
-##    beacon_2_packet = aprs_callsign + '>APRS,TCPIP*:' + '=' + latitude + '/' + longitude + aprs_symbol + aprs_symbol_table + 'A=' + altitude + ' ' + aprs_beacon_2_comment
-##    print('Sending beacon 1 packet.')
-##    print(beacon_2_packet)
-##    AIS_send.sendall(beacon_2_packet)
-##    time.sleep(5)
-##    AIS_send.close()
 
 def aprs_receive_loop(packet):
     global parse_packet, aprs_message_packet, AIS_send
@@ -201,7 +141,7 @@ def aprs_receive_loop(packet):
     #call = parse_packet['from']
     call = re.sub("-.*", "", aprs_call)
     post_path = post_data_dir + call + '/'
-    post_id = time.strftime('%m%d%y%H%M') + str(random.randint(1,9))
+    post_id = datetime.datetime.utcnow().strftime('%m%d%y%H%M') + str(random.randint(1,9))
     post_path_no_call = post_data_dir
     post_file = post_path + post_id + '.md'
     aprs_blog_post_hashtag = ''
@@ -302,7 +242,7 @@ def aprs_receive_loop(packet):
                          #   print('TDS enabled')
                           #  print(parse_packet['message_text'])
 
-                        if '@P' in parse_packet['message_text']: # and 'T-' in parse_packet['message_text']:
+                        if '@P ' in parse_packet['message_text']: # and 'T-' in parse_packet['message_text']:
                             try:
                                 aprs_ack()
                             except:
@@ -327,10 +267,11 @@ def aprs_receive_loop(packet):
                             print(aprs_blog_post_title)
                             print("APRS Blog Post: " + aprs_blog_post_text + " - From: " + call)
                             dict_data = post_id + ' : ' + aprs_blog_post_text + '\n'
+                            twtxt_data = str(datetime.datetime.utcnow().isoformat("T") + "Z").ljust(21) + '\t' + aprs_blog_post_text + ' - Post ID: ' + post_id + '\n'
                             #######Post Template#################################################################################################
                             post = '''\
-Title: ''' + aprs_blog_post_title + call + time.strftime(' - %m/%d/%Y - %H:%M:%S PST') + '''
-Date: ''' + time.strftime('%Y-%m-%d %H:%M:%S') + '''
+Title: ''' + aprs_blog_post_title + call + datetime.datetime.utcnow().strftime(' - %m/%d/%Y - %H:%M:%S UTC') + '''
+Date: ''' + datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S') + '''
 Category: ''' + aprs_blog_category + '''
 Tags: ''' + aprs_call + ', ' + aprs_blog_post_hastag + '''
 Authors: ''' + call + '''
@@ -348,7 +289,7 @@ Authors: ''' + call + '''
 
 ##### APRS packet received: *''' + parse_packet['raw'] + '''*
 
-[Track on APRS.fi](https://aprs.fi/info/a/''' + aprs_call + ''') | [Find on QRZCQ](https://qrzcq.com/call/''' + call + ''') | [Look up on Callook](https://callook.info/''' + call + ''')
+[Track on APRS.fi](https://aprs.fi/info/a/''' + aprs_call + ''') | [Follow with TWTXT](https://armds.net/twtxt/''' + call + '.txt'''') | [TWTXT Information](https://jointwt.org/) | [Look up on Callook](https://callook.info/''' + call + ''')
 '''
                             #####################################################################################################################
                                                     #print(post)
@@ -364,6 +305,20 @@ Authors: ''' + call + '''
                                                             f = open(post_path + "dict.txt","a")
                                                             f.write(str(dict_data))
                                                             f.close()
+###########################################################################
+                                                        d_twt = {}
+                                                        with open(twtxt_file_location + call + ".txt") as f_twt:
+                                                            for line in f_twt:
+                                                                (key, val) = line.split('\t', 1)
+                                                                #d[int(key)] = val
+                                                                d_twt[key] = val
+                                                            #print(d)
+                                                            print('Added post to twtxt')
+                                                            f_twt = open(twtxt_file_location + call + ".txt","a")
+                                                            f_twt.write(str(twtxt_data))
+                                                            f_twt.close()
+###########################################################################
+
                             except:
                                                         Path(post_path).mkdir(parents=True, exist_ok=True)
                                                         Path(post_path + 'dict.txt').touch()
@@ -380,6 +335,24 @@ Authors: ''' + call + '''
                                                             f.write(str(dict_data))
                                                             f.close()
                                                             print('created path and dict file')
+################################################################################
+###########################################################################
+                                                        Path(twtxt_file_location).mkdir(parents=True, exist_ok=True)
+                                                        Path(twtxt_file_location + call + '.txt').touch()
+                                                        print('excepted, created folder with twtxt file')
+                                                        d_twt = {}
+                                                        with open(twtxt_file_location + call + ".txt") as f_twt:
+                                                            for line in f_twt:
+                                                                (key, val) = line.split('\t', 1)
+                                                                #d[int(key)] = val
+                                                                d_twt[key] = val
+                                                            #print(d)
+                                                            print('Added post to twtxt')
+                                                            f_twt = open(twtxt_file_location + call + ".txt","a")
+                                                            f_twt.write(str(twtxt_data))
+                                                            f_twt.close()
+###########################################################################
+################################################################################
 
                                 
                             #print(add_dict_entry)
@@ -394,16 +367,16 @@ Authors: ''' + call + '''
                                     write_post = open(post_path + post_id + '.md', 'w')
                                     write_post.write(post)
                                     write_post.close()
-                            reply_aprs('Posted. ID: ' + post_id)
+                            reply_aprs_no_ack('Posted. ID: ' + post_id)
 #####
 
 #####
-                        if '@P DEL' in parse_packet['message_text']:
+                        if '@DEL ' in parse_packet['message_text']:
                                 try:
                                     aprs_ack()
                                 except:
                                     pass
-                                aprs_blog_post_delete = re.sub("@P DEL ", "", parse_packet['message_text'])
+                                aprs_blog_post_delete = re.sub("@DEL ", "", parse_packet['message_text'])
                                 print(aprs_blog_post_delete)
                                 os.system('rm ' + post_path + aprs_blog_post_delete + '.md')
                                 print('deleted post ID: ' + aprs_blog_post_delete)
@@ -431,6 +404,28 @@ Authors: ''' + call + '''
                                             f.write(k + ' : ' + v) # + '\n')
                                         f.close()
                                         print('sucessfully deleted')
+##############################################################################
+                                    d_twt = {}
+
+                                    with open(twtxt_file_location + call + ".txt") as f_twt:
+                                        for line in f_twt:
+                                            post_id_from_twtxt = re.sub('.*Post ID: ','',line)
+                                            twtxt_time = re.sub('\t.*','',line).strip('\n')
+                                            if aprs_blog_post_delete in line:
+                                                line = re.sub(twtxt_time, aprs_blog_post_delete, line)
+                                            (key, val) = line.split('\t', 1)
+                                        #d[int(key)] = val
+                                            d_twt[str(key)] = val
+                                        del d_twt[str(aprs_blog_post_delete)]
+                                        f_twt = open(twtxt_file_location + call + ".txt","w")
+                                        f_twt.write('')
+                                        f_twt.close()
+                                        f_twt = open(twtxt_file_location + call + ".txt","a")
+                                        for k, v in d_twt.items():
+                                            print(k + '\t' + v + '\n')
+                                            f_twt.write(k + '\t' + v) # + '\n')
+                                        f_twt.close()
+##############################################################################
                                         reply_aprs('Deleted post ID: ' + aprs_blog_post_delete)
                                         
                                 except:
@@ -471,13 +466,14 @@ Authors: ''' + call + '''
                                     print('Post or author not found')
                                     reply_aprs('Post not found')
 
-                        if 'POSTDEL ME' in parse_packet['message_text']:
+                        if '@DELETE MY DATA' in parse_packet['message_text']:
                                 try:
                                     aprs_ack()
                                 except:
                                     pass
                                 if aprs_call in parse_packet['message_text']:
                                     os.system('rm -R ' + post_path)
+                                    os.system('rm ' + twtxt_file_location + call + ".txt")
                                     print('Deleted all data for: ' + call)
                                     reply_aprs('Deleted all data for: ' + call)
                                 else:

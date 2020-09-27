@@ -1,4 +1,4 @@
-#!/usr/bin/python3.7
+#!/usr/bin/python3
 
 ###############################################################################
 #   Copyright (C) 2020 Eric Craw, KF7EEL <kf7eel@qsl.net>
@@ -42,29 +42,16 @@ status_2_packet = aprs_callsign + '>APRS,TCPIP*:' + '>' + aprs_status_text_2
 
 status_3_packet = aprs_callsign + '>APRS,TCPIP*:' + '>' + aprs_status_text_3
 
-#def custom_status(custom_status_text):
-#    status_3_packet = aprs_callsign + '>APRS,TCPIP*:' + '>' + custom_status_text
-
 
 def send_mult_packets(packet_1, packet_2):
     print('Sending the following packets: ')
-   # print(list_p)
-    time.sleep(3)
-    AIS_send.connect()
-    print('Sending packets.')
-    AIS_send.sendall(packet_1)
-    if 'none' == packet_2:
-        AIS_send.close()
-    else:
-        time.sleep(10)
-        AIS_send.sendall(packet_2)
-        AIS_send.close()
-    #print(str(list_p))
-#aprs_status_1()
+    packet_write(packet_1)
+    packet_write(packet_2)
+
 while 4 < 5:
     send_mult_packets(loc_1_packet, status_1_packet)
-    time.sleep(1800)
+    time.sleep(2400)
     send_mult_packets(loc_2_packet, status_2_packet)
-    time.sleep(1800)
+    time.sleep(2400)
     send_mult_packets(loc_3_packet, status_3_packet)
-    time.sleep(1800)
+    time.sleep(2400)
