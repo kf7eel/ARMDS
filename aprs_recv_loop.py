@@ -32,8 +32,22 @@ from core import *
 
 global AIS
 
+def aprs_packet_receive_write(packet):
+    pak_str = packet.decode('utf-8',errors='ignore').strip()
+        # Parse packet into dictionary
+    parse_packet = aprslib.parse(pak_str)
+    if 'message' == parse_packet['format']:
+        if aprs_callsign == parse_packet['addresse'] and 'message_text' in parse_packet:
+            with open(packet_recv_folder + str(random.randint(1000, 9999)) + '.packet', "w") as packet_write_file:
+                print(pak_str)
+                packet_write_file.write(pak_str)
+    else:
+        print('Packet from: ' + parse_packet['from'] + ' Format: ' + parse_packet['format'] + ' - ' + time.strftime('%H:%M:%S'))
+
+    
 
 AIS = aprslib.IS(aprs_callsign, host=aprs_is_host, passwd=aprs_passcode, port=aprs_is_port)
+Path(packet_recv_folder).mkdir(parents=True, exist_ok=True)
 
 #AIS = aprslib.IS('N0CALL', host='rotate.aprs.net', passwd='-1', port=10152)
 
@@ -42,7 +56,8 @@ AIS.set_filter(aprs_filter)
 # Connect to APRS-IS
 AIS.connect()
 
-print('Initialize')
-AIS.consumer(aprs_receive_loop, raw=True)
+print('APRS Receive')
+print('Initializing... Waiting for packets.')
+AIS.consumer(aprs_packet_receive_write, raw=True)
 
 

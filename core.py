@@ -77,7 +77,7 @@ def aprs_ack():
     time.sleep(1)
     if use_yaac == 0:
         if 'msgNo' in parse_packet:
-            print('Connecting to APRS-IS')
+            #print('Connecting to APRS-IS')
             from_space = parse_packet['from']
             packet_write(aprs_callsign + '>APRS,TCPIP*:' + ':' + from_space.ljust(9) + ':ack'+parse_packet['msgNo'])
             print(aprs_callsign + '>APRS,TCPIP*:' + ':' + from_space.ljust(9) + ':ack'+parse_packet['msgNo'])
@@ -132,9 +132,10 @@ def aprs_send_msg(aprs_to, aprs_message_text):
 
 def aprs_receive_loop(packet):
     global parse_packet, aprs_message_packet, AIS_send
-    pak_str = packet.decode('utf-8',errors='ignore').strip()
+    #pak_str = packet.decode('utf-8',errors='ignore').strip()
         # Parse packet into dictionary
-    parse_packet = aprslib.parse(pak_str)
+    print(packet)
+    parse_packet = aprslib.parse(packet)
 
     ### TDS Definitions ###################
     aprs_call = parse_packet['from']
@@ -155,121 +156,121 @@ def aprs_receive_loop(packet):
         #print('Bulletin from: ' + parse_packet['from'] + ' Message: ' + parse_packet['message_text'])
         #tg_sms_send('Bulletin from: ' + parse_packet['from'] + ' Message: ' + parse_packet['message_text'])
         #time.sleep(3)
-    if 'message' == parse_packet['format']:# and parse_packet['response'] != 'ack': #and aprs_callsign == parse_packet['addresse']:
+  #  if 'message' == parse_packet['format']:# and parse_packet['response'] != 'ack': #and aprs_callsign == parse_packet['addresse']:
        
         #if 'ack' == parse_packet['response']:
          #   print('Received ACK addressed to: ' + parse_packet['addresse'])
             #else:
              #   print('Message from: ' + parse_packet['from'] + ' To: ' + parse_packet['addresse'] + ' Message: ' + parse_packet['message'])
               
-        if aprs_callsign == parse_packet['addresse'] and 'message_text' in parse_packet:
+   #     if aprs_callsign == parse_packet['addresse'] and 'message_text' in parse_packet:
 
-            try:
-                        try:
-                            if 'E-' in parse_packet['message_text']:
-                  # Filter @ out os SMS, creat another if statement at this level for APRS implimentation.
-                                if '@' in parse_packet['message_text']:
-                                        print("Perparing email...")
-                                        aprs_ack()
-                                        for i in parse_packet['message_text'].split():
-                                            if i.startswith("E-"):
-                                            #print(i)
-                                                to_email = re.sub("E-| .*", "", parse_packet['message_text'])
-                                                print("Recipient: " + to_email)
-                                                email_body = re.sub("E-" + to_email, "", parse_packet['message_text'])
-                                                print("Message: " + email_body)
-                                                print("Sending email via SMTP")
-                                                email_send(to_email, email_body)
-                        
-                                            else:
-                                                print("E- in message, no @, not sending email")
-                        except:
-                            aprs_ack()
-                            print('E-Mail error, check config')
-                            reply_aprs('Error: Unable to send E-Mail.')
-                              
-                # Look for command in dictionary, user defined
-                        else:
-                            try:
-                                for key in cmd_list:
-                                    if key == parse_packet['message_text']:
-                                        print('User defined command: ')
-                                        print(cmd_list[key])
-                                        aprs_ack()
-                                        cmd_list[key]()
-                                        return
-                            except:
-                                print('User command failed, exception raised.')
-                                reply_aprs('USR CMD failed. Exception raised.')
+    try:
+                try:
+                    if 'E-' in parse_packet['message_text']:
+          # Filter @ out os SMS, creat another if statement at this level for APRS implimentation.
+                        if '@' in parse_packet['message_text']:
+                                print("Perparing email...")
+                                aprs_ack()
+                                for i in parse_packet['message_text'].split():
+                                    if i.startswith("E-"):
+                                    #print(i)
+                                        to_email = re.sub("E-| .*", "", parse_packet['message_text'])
+                                        print("Recipient: " + to_email)
+                                        email_body = re.sub("E-" + to_email, "", parse_packet['message_text'])
+                                        print("Message: " + email_body)
+                                        print("Sending email via SMTP")
+                                        email_send(to_email, email_body)
+                
+                                    else:
+                                        print("E- in message, no @, not sending email")
+                except:
+                    aprs_ack()
+                    print('E-Mail error, check config')
+                    reply_aprs('Error: Unable to send E-Mail.')
+                      
+        # Look for command in dictionary, user defined
+                else:
+                    try:
+                        for key in cmd_list:
+                            if key == parse_packet['message_text']:
+                                print('User defined command: ')
+                                print(cmd_list[key])
+                                aprs_ack()
+                                cmd_list[key]()
+                                return
+                    except:
+                        print('User command failed, exception raised.')
+                        reply_aprs('USR CMD failed. Exception raised.')
 
-                        #if aprs_callsign == parse_packet['addresse']:
-                         #   print('APRS message addressed to hotspot callsign')
-                          #  print('APRS message: ' + parse_packet['message_text'] + ' From: ' + parse_packet['from'])
-                           # aprs_ack()
-                    #    # Send message to DMR SMS
-                    #        print(time.strftime('%H:%M:%S - %m/%d/%Y'))
-                    #        # send to network or modem defined in config
-                    #        shark.do_send_sms('1', '2', '9', aprs_tg_network_reply,'APRS MSG from: ' + parse_packet['from'] + '. ' + parse_packet['message_text'])
-                    #        print('5 second reset')
-                    #        time.sleep(5)
-                        #AIS.connect()
-                        #dmr_sms_aprs_reply = 'APRS MSG from: ' + parse_packet['from'] + '. ' + parse_packet['message_text']
-                        #reply_sms(dmr_sms_aprs_reply)
-                            #time.sleep(1)
+                #if aprs_callsign == parse_packet['addresse']:
+                 #   print('APRS message addressed to hotspot callsign')
+                  #  print('APRS message: ' + parse_packet['message_text'] + ' From: ' + parse_packet['from'])
+                   # aprs_ack()
+            #    # Send message to DMR SMS
+            #        print(time.strftime('%H:%M:%S - %m/%d/%Y'))
+            #        # send to network or modem defined in config
+            #        shark.do_send_sms('1', '2', '9', aprs_tg_network_reply,'APRS MSG from: ' + parse_packet['from'] + '. ' + parse_packet['message_text'])
+            #        print('5 second reset')
+            #        time.sleep(5)
+                #AIS.connect()
+                #dmr_sms_aprs_reply = 'APRS MSG from: ' + parse_packet['from'] + '. ' + parse_packet['message_text']
+                #reply_sms(dmr_sms_aprs_reply)
+                    #time.sleep(1)
 
-                        if '!' == parse_packet['message_text']:
-                            reply_aprs('Unknown')
-    
-                        else:
-                            try:
-                                for sys_key in sys_cmd_list:
-                                    if sys_key == parse_packet['message_text']:
-                                        print('System command: ')
-                                        print(sys_cmd_list[sys_key])
-                                        aprs_ack()
-                                        sys_cmd_list[sys_key]()
-                                        print(parse_packet['raw'])
-                                        return
-                            except:
-                                print('System Command failed, exception raised.')
-                                reply_aprs('SYS CMD failed. Exception raised.')
+                if '!' == parse_packet['message_text']:
+                    reply_aprs('Unknown')
+
+                else:
+                    try:
+                        for sys_key in sys_cmd_list:
+                            if sys_key == parse_packet['message_text']:
+                                print('System command: ')
+                                print(sys_cmd_list[sys_key])
+                                aprs_ack()
+                                sys_cmd_list[sys_key]()
+                                print(parse_packet['raw'])
+                                return
+                    except:
+                        print('System Command failed, exception raised.')
+                        reply_aprs('SYS CMD failed. Exception raised.')
 
 
 
 ######################---TDS---#############################
 
-                        #if 1 == use_tds:
-                         #   print('TDS enabled')
-                          #  print(parse_packet['message_text'])
+                #if 1 == use_tds:
+                 #   print('TDS enabled')
+                  #  print(parse_packet['message_text'])
 
-                        if '@P' in parse_packet['message_text']: # and 'T-' in parse_packet['message_text']:
-                            try:
-                                aprs_ack()
-                            except:
-                                pass
-                            aprs_blog_post_title = 'Post from '
-                            aprs_blog_post_hastag = ''
-                            aprs_blog_post_hashtag_markdown = ''
-                            aprs_blog_post_text = aprs_blog_post_custom_id = re.sub("@T.*|@I.*|@P", "", parse_packet['message_text'])
-                            if '@I' in parse_packet['message_text']:
-                                    aprs_blog_post_custom_id = re.sub(".*@I", "", parse_packet['message_text'])
-                                    print('Custom ID: ' + aprs_blog_post_custom_id)
-                                    post_id = aprs_blog_post_custom_id
-                                #if 'I-' not in parse_packet['message_text']:
-                            if '#' in parse_packet['message_text']:
-                                aprs_blog_post_hastag = re.sub(".* #| .*", "", parse_packet['message_text'])
-                                aprs_blog_post_hashtag_markdown = ' *Hashtag: [#' + aprs_blog_post_hastag + '](' + aprs_blog_tag_logation + aprs_blog_post_hastag + '.html)*'
-                                print('Hashtags: ' + aprs_blog_post_hastag)
-                            if '@T' in parse_packet['message_text']:
-                                aprs_blog_post_title = re.sub(".*T|@T|-|@I.*", "", parse_packet['message_text']) + ' - '
-                                aprs_blog_post_text = re.sub("@T.*|@P", "", parse_packet['message_text'])
-                            print(aprs_blog_post_text)
-                            print(aprs_blog_post_title)
-                            print("APRS Blog Post: " + aprs_blog_post_text + " - From: " + call)
-                            dict_data = post_id + ' : ' + aprs_blog_post_text + '\n'
-                            twtxt_data = str(datetime.datetime.utcnow().isoformat("T") + "Z").ljust(21) + '\t' + aprs_blog_post_text + ' - Post ID: ' + post_id + '\n'
-                            #######Post Template#################################################################################################
-                            post = '''\
+                if '@P' in parse_packet['message_text']: # and 'T-' in parse_packet['message_text']:
+                    try:
+                        aprs_ack()
+                    except:
+                        pass
+                    aprs_blog_post_title = 'Post from '
+                    aprs_blog_post_hastag = ''
+                    aprs_blog_post_hashtag_markdown = ''
+                    aprs_blog_post_text = aprs_blog_post_custom_id = re.sub("@T.*|@I.*|@P", "", parse_packet['message_text'])
+                    if '@I' in parse_packet['message_text']:
+                            aprs_blog_post_custom_id = re.sub(".*@I", "", parse_packet['message_text'])
+                            print('Custom ID: ' + aprs_blog_post_custom_id)
+                            post_id = aprs_blog_post_custom_id
+                        #if 'I-' not in parse_packet['message_text']:
+                    if '#' in parse_packet['message_text']:
+                        aprs_blog_post_hastag = re.sub(".* #| .*", "", parse_packet['message_text'])
+                        aprs_blog_post_hashtag_markdown = ' *Hashtag: [#' + aprs_blog_post_hastag + '](' + aprs_blog_tag_logation + aprs_blog_post_hastag + '.html)*'
+                        print('Hashtags: ' + aprs_blog_post_hastag)
+                    if '@T' in parse_packet['message_text']:
+                        aprs_blog_post_title = re.sub(".*T|@T|-|@I.*", "", parse_packet['message_text']) + ' - '
+                        aprs_blog_post_text = re.sub("@T.*|@P", "", parse_packet['message_text'])
+                    print(aprs_blog_post_text)
+                    print(aprs_blog_post_title)
+                    print("APRS Blog Post: " + aprs_blog_post_text + " - From: " + call)
+                    dict_data = post_id + ' : ' + aprs_blog_post_text + '\n'
+                    twtxt_data = str(datetime.datetime.utcnow().isoformat("T") + "Z").ljust(21) + '\t' + aprs_blog_post_text + ' - Post ID: ' + post_id + '\n'
+                    #######Post Template#################################################################################################
+                    post = '''\
 Title: ''' + aprs_blog_post_title + call + datetime.datetime.utcnow().strftime(' - %m/%d/%Y - %H:%M:%S UTC') + '''
 Date: ''' + datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S') + '''
 Category: ''' + aprs_blog_category + '''
@@ -291,215 +292,215 @@ Authors: ''' + call + '''
 
 [Track on APRS.fi](https://aprs.fi/info/a/''' + aprs_call + ''') | [Follow with TWTXT](https://armds.net/twtxt/''' + call + '.txt'''') | [TWTXT Information](https://jointwt.org/) | [Look up on Callook](https://callook.info/''' + call + ''')
 '''
-                            #####################################################################################################################
-                                                    #print(post)
-                            try:
-                                                        d = {}
-                                                        with open(post_path + "dict.txt") as f:
-                                                            for line in f:
-                                                                (key, val) = line.split(' : ', 1)
-                                                                #d[int(key)] = val
-                                                                d[key] = val
-                                                            #print(d)
-                                                            print('Added post to internal dict')
-                                                            f = open(post_path + "dict.txt","a")
-                                                            f.write(str(dict_data))
-                                                            f.close()
+                    #####################################################################################################################
+                                            #print(post)
+                    try:
+                                                d = {}
+                                                with open(post_path + "dict.txt") as f:
+                                                    for line in f:
+                                                        (key, val) = line.split(' : ', 1)
+                                                        #d[int(key)] = val
+                                                        d[key] = val
+                                                    #print(d)
+                                                    print('Added post to internal dict')
+                                                    f = open(post_path + "dict.txt","a")
+                                                    f.write(str(dict_data))
+                                                    f.close()
 ###########################################################################
-                                                        d_twt = {}
-                                                        with open(twtxt_file_location + call + ".txt") as f_twt:
-                                                            for line in f_twt:
-                                                                (key, val) = line.split('\t', 1)
-                                                                #d[int(key)] = val
-                                                                d_twt[key] = val
-                                                            #print(d)
-                                                            print('Added post to twtxt')
-                                                            f_twt = open(twtxt_file_location + call + ".txt","a")
-                                                            f_twt.write(str(twtxt_data))
-                                                            f_twt.close()
+                                                d_twt = {}
+                                                with open(twtxt_file_location + call + ".txt") as f_twt:
+                                                    for line in f_twt:
+                                                        (key, val) = line.split('\t', 1)
+                                                        #d[int(key)] = val
+                                                        d_twt[key] = val
+                                                    #print(d)
+                                                    print('Added post to twtxt')
+                                                    f_twt = open(twtxt_file_location + call + ".txt","a")
+                                                    f_twt.write(str(twtxt_data))
+                                                    f_twt.close()
 ###########################################################################
 
-                            except:
-                                                        Path(post_path).mkdir(parents=True, exist_ok=True)
-                                                        Path(post_path + 'dict.txt').touch()
-                                                        print('excepted, created folder with dict file')
-                                                        d = {}
-                                                        with open(post_path + "dict.txt") as f:
-                                                            for line in f:
-                                                                (key, val) = line.split(' : ', 1)
-                                                                #d[int(key)] = val
-                                                                d[key] = val
-                                                            #print(d)
-                                                            print('Added post to internal dict')
-                                                            f = open(post_path + "dict.txt","a")
-                                                            f.write(str(dict_data))
-                                                            f.close()
-                                                            print('created path and dict file')
+                    except:
+                                                Path(post_path).mkdir(parents=True, exist_ok=True)
+                                                Path(post_path + 'dict.txt').touch()
+                                                print('excepted, created folder with dict file')
+                                                d = {}
+                                                with open(post_path + "dict.txt") as f:
+                                                    for line in f:
+                                                        (key, val) = line.split(' : ', 1)
+                                                        #d[int(key)] = val
+                                                        d[key] = val
+                                                    #print(d)
+                                                    print('Added post to internal dict')
+                                                    f = open(post_path + "dict.txt","a")
+                                                    f.write(str(dict_data))
+                                                    f.close()
+                                                    print('created path and dict file')
 ################################################################################
 ###########################################################################
-                                                        Path(twtxt_file_location).mkdir(parents=True, exist_ok=True)
-                                                        Path(twtxt_file_location + call + '.txt').touch()
-                                                        print('excepted, created folder with twtxt file')
-                                                        d_twt = {}
-                                                        with open(twtxt_file_location + call + ".txt") as f_twt:
-                                                            for line in f_twt:
-                                                                (key, val) = line.split('\t', 1)
-                                                                #d[int(key)] = val
-                                                                d_twt[key] = val
-                                                            #print(d)
-                                                            print('Added post to twtxt')
-                                                            f_twt = open(twtxt_file_location + call + ".txt","a")
-                                                            f_twt.write(str(twtxt_data))
-                                                            f_twt.close()
+                                                Path(twtxt_file_location).mkdir(parents=True, exist_ok=True)
+                                                Path(twtxt_file_location + call + '.txt').touch()
+                                                print('excepted, created folder with twtxt file')
+                                                d_twt = {}
+                                                with open(twtxt_file_location + call + ".txt") as f_twt:
+                                                    for line in f_twt:
+                                                        (key, val) = line.split('\t', 1)
+                                                        #d[int(key)] = val
+                                                        d_twt[key] = val
+                                                    #print(d)
+                                                    print('Added post to twtxt')
+                                                    f_twt = open(twtxt_file_location + call + ".txt","a")
+                                                    f_twt.write(str(twtxt_data))
+                                                    f_twt.close()
 ###########################################################################
 ################################################################################
 
-                                
-                            #print(add_dict_entry)
+                        
+                    #print(add_dict_entry)
 
-                            try:
-                                    write_post = open(post_path + post_id + '.md', 'w')
-                                    write_post.write(post)
-                                    write_post.close()
-                            except:
-                                    Path(post_path).mkdir(parents=True, exist_ok=True)
-                                    time.sleep(3)
-                                    write_post = open(post_path + post_id + '.md', 'w')
-                                    write_post.write(post)
-                                    write_post.close()
-                            reply_aprs_no_ack('Posted. ID: ' + post_id)
+                    try:
+                            write_post = open(post_path + post_id + '.md', 'w')
+                            write_post.write(post)
+                            write_post.close()
+                    except:
+                            Path(post_path).mkdir(parents=True, exist_ok=True)
+                            time.sleep(3)
+                            write_post = open(post_path + post_id + '.md', 'w')
+                            write_post.write(post)
+                            write_post.close()
+                    reply_aprs_no_ack('Posted. ID: ' + post_id)
 #####
 
 #####
-                        if '@DEL ' in parse_packet['message_text']:
-                                try:
-                                    aprs_ack()
-                                except:
-                                    pass
-                                aprs_blog_post_delete = re.sub("@DEL ", "", parse_packet['message_text'])
-                                print(aprs_blog_post_delete)
-                                os.system('rm ' + post_path + aprs_blog_post_delete + '.md')
-                                print('deleted post ID: ' + aprs_blog_post_delete)
+                if '@DEL ' in parse_packet['message_text']:
+                        try:
+                            aprs_ack()
+                        except:
+                            pass
+                        aprs_blog_post_delete = re.sub("@DEL ", "", parse_packet['message_text'])
+                        print(aprs_blog_post_delete)
+                        os.system('rm ' + post_path + aprs_blog_post_delete + '.md')
+                        print('deleted post ID: ' + aprs_blog_post_delete)
+                        
+                        try:
+                            d = {}
+                            with open(post_path + "dict.txt") as f:
+                                for line in f:
+                                    (key, val) = line.split(' : ', 1)
+                                #d[int(key)] = val
+                                    d[str(key)] = val
+                                #print(d)
+                                del d[str(aprs_blog_post_delete)]
+                                #print('----')
+                                #print(d)
+                                #print('----')
+                                f = open(post_path + "dict.txt","w")
+                                f.write('')
+                                f.close()
+                                f = open(post_path + "dict.txt","a")
+                                for k, v in d.items():
+                            #for item in v:
+                            #print(k,v)
+                                    print(k + ' : ' + v + '\n')
+                                    f.write(k + ' : ' + v) # + '\n')
+                                f.close()
+                                print('sucessfully deleted')
+##############################################################################
+                            d_twt = {}
+
+                            with open(twtxt_file_location + call + ".txt") as f_twt:
+                                for line in f_twt:
+                                    post_id_from_twtxt = re.sub('.*Post ID: ','',line)
+                                    twtxt_time = re.sub('\t.*','',line).strip('\n')
+                                    if aprs_blog_post_delete in line:
+                                        line = re.sub(twtxt_time, aprs_blog_post_delete, line)
+                                    (key, val) = line.split('\t', 1)
+                                #d[int(key)] = val
+                                    d_twt[str(key)] = val
+                                del d_twt[str(aprs_blog_post_delete)]
+                                f_twt = open(twtxt_file_location + call + ".txt","w")
+                                f_twt.write('')
+                                f_twt.close()
+                                f_twt = open(twtxt_file_location + call + ".txt","a")
+                                for k, v in d_twt.items():
+                                    print(k + '\t' + v + '\n')
+                                    f_twt.write(k + '\t' + v) # + '\n')
+                                f_twt.close()
+##############################################################################
+                                reply_aprs('Deleted post ID: ' + aprs_blog_post_delete)
                                 
-                                try:
-                                    d = {}
-                                    with open(post_path + "dict.txt") as f:
-                                        for line in f:
-                                            (key, val) = line.split(' : ', 1)
-                                        #d[int(key)] = val
-                                            d[str(key)] = val
-                                        #print(d)
-                                        del d[str(aprs_blog_post_delete)]
-                                        #print('----')
-                                        #print(d)
-                                        #print('----')
-                                        f = open(post_path + "dict.txt","w")
-                                        f.write('')
-                                        f.close()
-                                        f = open(post_path + "dict.txt","a")
-                                        for k, v in d.items():
-                                    #for item in v:
-                                    #print(k,v)
-                                            print(k + ' : ' + v + '\n')
-                                            f.write(k + ' : ' + v) # + '\n')
-                                        f.close()
-                                        print('sucessfully deleted')
-##############################################################################
-                                    d_twt = {}
-
-                                    with open(twtxt_file_location + call + ".txt") as f_twt:
-                                        for line in f_twt:
-                                            post_id_from_twtxt = re.sub('.*Post ID: ','',line)
-                                            twtxt_time = re.sub('\t.*','',line).strip('\n')
-                                            if aprs_blog_post_delete in line:
-                                                line = re.sub(twtxt_time, aprs_blog_post_delete, line)
-                                            (key, val) = line.split('\t', 1)
-                                        #d[int(key)] = val
-                                            d_twt[str(key)] = val
-                                        del d_twt[str(aprs_blog_post_delete)]
-                                        f_twt = open(twtxt_file_location + call + ".txt","w")
-                                        f_twt.write('')
-                                        f_twt.close()
-                                        f_twt = open(twtxt_file_location + call + ".txt","a")
-                                        for k, v in d_twt.items():
-                                            print(k + '\t' + v + '\n')
-                                            f_twt.write(k + '\t' + v) # + '\n')
-                                        f_twt.close()
-##############################################################################
-                                        reply_aprs('Deleted post ID: ' + aprs_blog_post_delete)
-                                        
-                                except:
-                                    print('unable to delete')
-                                    reply_aprs('Unable to delete post: ' + aprs_blog_post_delete)
-                        if '@R ' in parse_packet['message_text']:
-                                try:
-                                    aprs_ack()
-                                except:
-                                    pass
-                                aprs_blog_post_retrieve_cmd = re.sub("@R ", "", parse_packet['message_text'])
-                                #print(aprs_blog_post_retrieve_cmd)
-                                aprs_blog_post_retrieve_id_cmd = re.sub(".*ID ", "", aprs_blog_post_retrieve_cmd)
-                                #print(aprs_blog_post_retrieve_id_cmd)
-                                aprs_blog_post_retrieve_call_cmd = str(re.sub("ID.*| ", "", aprs_blog_post_retrieve_cmd)).upper()
-                                #print(aprs_blog_post_retrieve_call_cmd)
-                                post_path_retrieve = post_path_no_call + aprs_blog_post_retrieve_call_cmd + '/'
-                                #print(post_path_retrieve)
-                                try:
-                                    d = {}
-                                    with open(post_path_retrieve + "dict.txt") as f:
-                                #get vaule of key
-                                        for line in f:
-                                            (key, val) = line.split(' : ', 1)
-                                            d[str(key)] = val
-                                        print(d.get(aprs_blog_post_retrieve_id_cmd))
-                                        if d.get(aprs_blog_post_retrieve_id_cmd) == None:
-                                            print('No entries found for that ID')
-                                            reply_aprs('No post found for ID: ' + d.get(aprs_blog_post_retrieve_id_cmd).strip('\n'))
-                                            
-                                        else:
-                                            print('Sending APRS packet...')
-                                            # add no ack message pack to announce incoming message
-                                            reply_aprs_no_ack('Post from ' + aprs_blog_post_retrieve_call_cmd + ' ID: ' + aprs_blog_post_retrieve_id_cmd)
-                                            reply_aprs(d.get(aprs_blog_post_retrieve_id_cmd).strip('\n'))
-                                            
-                                except:
-                                    print('Post or author not found')
-                                    reply_aprs('Post not found')
-
-                        if '@DELETE MY DATA' in parse_packet['message_text']:
-                                try:
-                                    aprs_ack()
-                                except:
-                                    pass
-                                if aprs_call in parse_packet['message_text']:
-                                    os.system('rm -R ' + post_path)
-                                    os.system('rm ' + twtxt_file_location + call + ".txt")
-                                    print('Deleted all data for: ' + call)
-                                    reply_aprs('Deleted all data for: ' + call)
+                        except:
+                            print('unable to delete')
+                            reply_aprs('Unable to delete post: ' + aprs_blog_post_delete)
+                if '@R ' in parse_packet['message_text']:
+                        try:
+                            aprs_ack()
+                        except:
+                            pass
+                        aprs_blog_post_retrieve_cmd = re.sub("@R ", "", parse_packet['message_text'])
+                        #print(aprs_blog_post_retrieve_cmd)
+                        aprs_blog_post_retrieve_id_cmd = re.sub(".*ID ", "", aprs_blog_post_retrieve_cmd)
+                        #print(aprs_blog_post_retrieve_id_cmd)
+                        aprs_blog_post_retrieve_call_cmd = str(re.sub("ID.*| ", "", aprs_blog_post_retrieve_cmd)).upper()
+                        #print(aprs_blog_post_retrieve_call_cmd)
+                        post_path_retrieve = post_path_no_call + aprs_blog_post_retrieve_call_cmd + '/'
+                        #print(post_path_retrieve)
+                        try:
+                            d = {}
+                            with open(post_path_retrieve + "dict.txt") as f:
+                        #get vaule of key
+                                for line in f:
+                                    (key, val) = line.split(' : ', 1)
+                                    d[str(key)] = val
+                                print(d.get(aprs_blog_post_retrieve_id_cmd))
+                                if d.get(aprs_blog_post_retrieve_id_cmd) == None:
+                                    print('No entries found for that ID')
+                                    reply_aprs('No post found for ID: ' + d.get(aprs_blog_post_retrieve_id_cmd).strip('\n'))
+                                    
                                 else:
-                                    print('Your current callsign w/ SSID must be in message to confirm')
-                                    reply_aprs('Must include current callsign and SSID')
-                        #else:
-                        #    aprs_ack()
-                        #    print('Command not found')
-                        #    reply_aprs('Command not found or recognized')
-                        #if '!!' == parse_packet['message_text']:
-                        #    reply_aprs('Unknown')
+                                    print('Sending APRS packet...')
+                                    # add no ack message pack to announce incoming message
+                                    reply_aprs_no_ack('Post from ' + aprs_blog_post_retrieve_call_cmd + ' ID: ' + aprs_blog_post_retrieve_id_cmd)
+                                    reply_aprs(d.get(aprs_blog_post_retrieve_id_cmd).strip('\n'))
+                                    
+                        except:
+                            print('Post or author not found')
+                            reply_aprs('Post not found')
+
+                if '@DELETE MY DATA' in parse_packet['message_text']:
+                        try:
+                            aprs_ack()
+                        except:
+                            pass
+                        if aprs_call in parse_packet['message_text']:
+                            os.system('rm -R ' + post_path)
+                            os.system('rm ' + twtxt_file_location + call + ".txt")
+                            print('Deleted all data for: ' + call)
+                            reply_aprs('Deleted all data for: ' + call)
+                        else:
+                            print('Your current callsign w/ SSID must be in message to confirm')
+                            reply_aprs('Must include current callsign and SSID')
+                #else:
+                #    aprs_ack()
+                #    print('Command not found')
+                #    reply_aprs('Command not found or recognized')
+                #if '!!' == parse_packet['message_text']:
+                #    reply_aprs('Unknown')
+
+                else:
+                        print('Message, but not to us')
+                        if 'message_text' in parse_packet:
+                            print(parse_packet['raw'])
+                            print('Message from: ' + parse_packet['from'] + ' To: ' + parse_packet['addresse'] + ' Message: ' + parse_packet['message_text'])
 
                         else:
-                                print('Message, but not to us')
-                                if 'message_text' in parse_packet:
-                                    print(parse_packet['raw'])
-                                    print('Message from: ' + parse_packet['from'] + ' To: ' + parse_packet['addresse'] + ' Message: ' + parse_packet['message_text'])
-
-                                else:
-                                    print(parse_packet['raw'])
+                            print(parse_packet['raw'])
 
 
-                            
-            except (aprslib.ParseError, aprslib.UnknownFormat) as exp:
-                print('Unable to process packet')
-                pass
+                    
+    except (aprslib.ParseError, aprslib.UnknownFormat) as exp:
+        print('Unable to process packet')
+        pass
 
 
     else:
