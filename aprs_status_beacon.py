@@ -50,8 +50,8 @@ def send_mult_packets(packet_1, packet_2):
 
 while 4 < 5:
     send_mult_packets(loc_1_packet, status_1_packet)
-    time.sleep(2400)
+    time.sleep(1800)
     send_mult_packets(loc_2_packet, status_2_packet)
-    time.sleep(2400)
+    time.sleep(1800)
     send_mult_packets(loc_3_packet, status_3_packet)
-    time.sleep(2400)
+    time.sleep(1800)

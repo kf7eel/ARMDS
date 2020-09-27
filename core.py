@@ -20,6 +20,8 @@
 
 # Modified 09-26-2020, by Eric, KF7EEL
 
+# https://linux.us.org/kf7eel/ARMDS
+
 # Contains all functions for program
 # APRS receive script and required for APRS interactive script.
 
