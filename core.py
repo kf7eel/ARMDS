@@ -242,7 +242,7 @@ def aprs_receive_loop(packet):
                          #   print('TDS enabled')
                           #  print(parse_packet['message_text'])
 
-                        if '@P ' in parse_packet['message_text']: # and 'T-' in parse_packet['message_text']:
+                        if '@P' in parse_packet['message_text']: # and 'T-' in parse_packet['message_text']:
                             try:
                                 aprs_ack()
                             except:
@@ -260,7 +260,7 @@ def aprs_receive_loop(packet):
                                 aprs_blog_post_hastag = re.sub(".* #| .*", "", parse_packet['message_text'])
                                 aprs_blog_post_hashtag_markdown = ' *Hashtag: [#' + aprs_blog_post_hastag + '](' + aprs_blog_tag_logation + aprs_blog_post_hastag + '.html)*'
                                 print('Hashtags: ' + aprs_blog_post_hastag)
-                            if '@I' in parse_packet['message_text']:
+                            if '@T' in parse_packet['message_text']:
                                 aprs_blog_post_title = re.sub(".*T|@T|-|@I.*", "", parse_packet['message_text']) + ' - '
                                 aprs_blog_post_text = re.sub("@T.*|@P", "", parse_packet['message_text'])
                             print(aprs_blog_post_text)
