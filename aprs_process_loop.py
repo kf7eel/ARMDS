@@ -30,13 +30,34 @@
 
 from core import *
 
-print('APRS packet processor/router')
-while 4<5:
+def process_loop():
     for packet_file in os.listdir(packet_recv_folder):
         #print(packet_file)
         with open(packet_recv_folder + packet_file) as packet_contents:
-            packet_content_data = packet_contents.read().strip('\n')
-            print(packet_content_data)#.strip('\n'))
-            aprs_receive_loop(packet_content_data) #.strip('\n'))
-            os.remove(packet_recv_folder + packet_file)
-            time.sleep(0.25)
+            if packet_contents != '':
+                packet_content_data = packet_contents.read().strip('\n')
+                print(packet_content_data)#.strip('\n'))
+                aprs_receive_loop(packet_content_data) #.strip('\n'))
+                os.remove(packet_recv_folder + packet_file)
+                time.sleep(1)
+                print('processed')
+            else:
+                print('blank')
+                pass
+print('APRS packet router')
+##while 4<5:
+##    for packet_file in os.listdir(packet_recv_folder):
+##        #print(packet_file)
+##        with open(packet_recv_folder + packet_file) as packet_contents:
+##            #if packet_contents != '':
+##                packet_content_data = packet_contents.read().strip('\n')
+##                print(packet_content_data)#.strip('\n'))
+##                aprs_receive_loop(packet_content_data) #.strip('\n'))
+##                os.remove(packet_recv_folder + packet_file)
+##                time.sleep(0.5)
+##                #i += 1
+##            #else:
+##              #  i = 2
+
+while 4 < 5:
+    process_loop()

@@ -111,9 +111,11 @@ aprs_blog_category = 'User APRS Blogs'
 
 twtxt_file_location = 'location for twtxt files'
 
+tiny_pages_html_location = 'path to folder for output of html for tiny pages'
+
 ### System definitions - dont touch
 
-packet_send_folder = '/tmp/.armds.packets/'
+packet_send_folder = '/tmp/.armds.packets/aprs_outgoing/'
+packet_recv_folder = '/tmp/.armds.packets/aprs_incoming/'
 
 line_break = '\n'
-
