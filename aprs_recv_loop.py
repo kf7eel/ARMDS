@@ -28,14 +28,27 @@
 
 from core import *
 import shutil
+#from sqlite_test import *
 
 global AIS
+
+n = 0
+
+db = location_db()
 
 def aprs_packet_receive_write(packet):
     pak_str = packet.decode('utf-8',errors='ignore').strip()
         # Parse packet into dictionary
     parse_packet = aprslib.parse(pak_str)
-    if 'message' == parse_packet['format']:
+    database_call = db.get_location(parse_packet['from'])
+    #See if packet fit definition of what we want to keep coordinates for
+    if 'messagecapable' in parse_packet: #== True:
+        if db.exists(parse_packet['from']) == True:
+            db.modify_location(parse_packet['from'], parse_packet['latitude'], parse_packet['longitude'], time.strftime('%H:%M:%S'))
+        if db.exists(parse_packet['from']) == False:
+            db.add_location(parse_packet['from'], parse_packet['latitude'], parse_packet['longitude'], time.strftime('%H:%M:%S'))
+        
+    elif 'message' == parse_packet['format']:
         if aprs_callsign == parse_packet['addresse'] and 'message_text' in parse_packet:
             with open(packet_recv_folder + str(random.randint(1000, 9999)) + '.packet', "w") as packet_write_file:
                 print(pak_str)
@@ -73,12 +86,19 @@ Path(packet_recv_folder).mkdir(parents=True, exist_ok=True)
 # Sends filter settings to APRS server
 print(armds_intro)
 
+try:
+    db.initialize_db()
+    db.add_location('N0CALL', '0', '0', 'First Entry')
+except:
+    print('Error, DB may already exist')
+
 AIS.set_filter(aprs_filter)
 # Connect to APRS-IS
 AIS.connect()
 
 print('APRS-IS Packet Receiver')
 print('Initializing... Waiting for packets.')
+n = 0
 AIS.consumer(aprs_packet_receive_write, raw=True)
 
 

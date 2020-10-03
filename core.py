@@ -46,6 +46,9 @@ from email.header import decode_header
 import aprslib, logging
 from pathlib import Path
 
+#SQLite
+import sqlite3
+from contextlib import closing
 # APRS Functions
 
 armds_version = 'v1.101 '
@@ -74,6 +77,51 @@ armds_intro = '''
 Callsign: ''' + aprs_callsign + ''' - APRS-IS: ''' + aprs_is_send_host + ''' - Port: ''' + str(aprs_is_send_port) + '''
 
 '''
+
+class location_db:
+    '''Used for storing and retrieving location information'''
+    db_file = "station_locations.db"
+    connection = sqlite3.connect(db_file)
+    cursor = connection.cursor()
+    #rows = cursor.execute("SELECT callsign, lat, lon, time FROM locations WHERE callsign = ?",(callsign,),).fetchall()
+
+
+    def initialize_db(self):
+        '''Set up DB'''
+        with self.connection:
+            self.cursor.execute("CREATE TABLE locations (callsign TEXT, lat INTERGER, lon INTEGER, time TEXT)")
+            print('Initialize DB')
+    def add_location(self, callsign, lat, lon, time):
+        '''Add loction to db'''
+        with self.connection:
+            self.cursor.execute("INSERT INTO locations VALUES (?, ?, ?, ?)", (str(callsign), lat, lon, time))
+            print('Added location for ' + callsign)
+    def get_location(self, callsign):
+        '''return list of tuples with location'''
+        with self.connection:
+            rows = self.cursor.execute("SELECT callsign, lat, lon, time FROM locations WHERE callsign = ?",(callsign,),).fetchall()
+            return rows
+    def modify_location(self, callsign, lat, lon, time):
+        '''modify location'''
+        with self.connection:
+            self.cursor.execute("UPDATE locations SET lat = ? WHERE callsign = ?",(lat, callsign))
+            self.cursor.execute("UPDATE locations SET lon = ? WHERE callsign = ?",(lon, callsign))
+            self.cursor.execute("UPDATE locations SET time = ? WHERE callsign = ?",(time, callsign))
+            print('Modified ' + callsign + ' location')
+    def view_table(self):
+        '''view entire db'''
+        self.cursor.execute("SELECT * FROM locations")
+        print(self.cursor.fetchall())
+    def exists(self, callsign):
+        '''see if callsign exists'''
+        rows = self.cursor.execute("SELECT callsign FROM locations WHERE callsign = ?",(callsign,),).fetchall()
+        #print(rows)
+        if rows == []:
+                return False
+        else:
+                return True
+
+
 
 global AIS, aprs_message_packet, post_path
 
