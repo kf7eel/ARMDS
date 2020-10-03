@@ -48,6 +48,9 @@ def send_mult_packets(packet_1, packet_2):
     packet_write(packet_1)
     packet_write(packet_2)
 
+print(armds_intro)
+
+print('APRS Beacon Packets')
 while 4 < 5:
     send_mult_packets(loc_1_packet, status_1_packet)
     time.sleep(2400)

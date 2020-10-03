@@ -28,16 +28,18 @@ from core import *
 
 #global AIS
 
-print(aprs_callsign)
-print(aprs_passcode)
-print(aprs_is_send_host)
-print(aprs_is_send_port)
+##print(aprs_callsign)
+##print(aprs_passcode)
+##print(aprs_is_send_host)
+##print(aprs_is_send_port)
 send_AIS = aprslib.IS(aprs_callsign, passwd=aprs_passcode,host=aprs_is_send_host, port=aprs_is_send_port)
 #send_AIS.set_filter(aprs_filter)
 
+print(armds_intro)
+
 send_AIS.connect()
 
-print('APRS Send processor')
+print('APRS-IS Packet Upload')
 print('Initialized. Waiting to send packets.')
 #Start loop, execute every second
 Path(packet_send_folder).mkdir(parents=True, exist_ok=True)

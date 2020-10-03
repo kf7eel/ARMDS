@@ -30,9 +30,13 @@
 
 # Simple commands that do not require filtering
 
+class Initialize:
+    def __init__(self):
+        import time, os #, core
+        from core import write_packet
 
-def initialize():
-    import time, os
+##def initialize():
+##    import time, os
 # Send user system uptime
 def uptime():
     import time, os, core
@@ -80,4 +84,3 @@ def command_help():
     print('\n' + "--------------------------------------" + '\n')
     reply_aprs('See https://armds.net for help and information.')
         
-

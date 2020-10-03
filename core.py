@@ -28,7 +28,6 @@
 # This is a split from the shark-py-sms project to allow an APRS only setup.
 # This is to accomodate users who do not use DMR but wish to still have an interactive
 # messaging setup. This should work with any APRS compatable radio, even bridged DMR systems.
-# https://github.com/kf7eel/shark-py-sms
 
 # APRS is a registered trademark Bob Bruninga, WB4APR
 
@@ -48,6 +47,33 @@ import aprslib, logging
 from pathlib import Path
 
 # APRS Functions
+
+armds_version = 'v1.101 '
+
+armds_intro = '''
+------------------------------------------------------------------------------
+|                                                                            |
+|         .o.       ooooooooo.   ooo        ooooo oooooooooo.    .oooooo..o  |
+|        .888.      `888   `Y88. `88.       .888' `888'   `Y8b  d8P'    `Y8  |
+|       .8"888.      888   .d88'  888b     d'888   888      888 Y88bo.       |
+|      .8' `888.     888ooo88P'   8 Y88. .P  888   888      888  `"Y8888o.   |
+|     .88ooo8888.    888`88b.     8  `888'   888   888      888      `"Y88b  |
+|    .8'     `888.   888  `88b.   8    Y     888   888     d88' oo     .d8P  |
+|   o88o     o8888o o888o  o888o o8o        o888o o888bood8P'   8""88888P'   |
+|                                                                            |
+|                                                                            |
+| Amateur Radio Micro Data Service - https://armds.net - ''' + armds_version + ''' - by KF7EEL |
+|                                                                            |
+|   Project status, bug reporting, issues and more can be found at:          |
+|   https://git.linux.us.org/kf7eel/ARMDS                                    |
+|                                                                            |
+|   See this script in action at https://armds.net                           |
+|                                                                            |
+------------------------------------------------------------------------------
+
+Callsign: ''' + aprs_callsign + ''' - APRS-IS: ''' + aprs_is_send_host + ''' - Port: ''' + str(aprs_is_send_port) + '''
+
+'''
 
 global AIS, aprs_message_packet, post_path
 

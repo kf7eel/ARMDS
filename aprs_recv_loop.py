@@ -18,8 +18,6 @@
 #   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 ###############################################################################
 
-# Version "1", by Eric, KF7EEL
-
 # Interactive APRS script. 
 # This is a split from the shark-py-sms project to allow an APRS only setup.
 # This is to accomodate users who do not use DMR but wish to still have an interactive
@@ -29,6 +27,7 @@
 # Feel free to modify and improve.
 
 from core import *
+import shutil
 
 global AIS
 
@@ -41,22 +40,44 @@ def aprs_packet_receive_write(packet):
             with open(packet_recv_folder + str(random.randint(1000, 9999)) + '.packet', "w") as packet_write_file:
                 print(pak_str)
                 packet_write_file.write(pak_str)
+                #os.system('mv ' + packet_write_file + ' ' + packet_process_folder)
+        #os.system('mv ' + packet_write_file + ' ' + packet_process_folder)
+            #shutil.move(packet_recv_folder + '*', packet_process_folder)
+
+
+    # Note to self, try mv in for loop, after you get off work
+        
+##        try:
+##            os.system('mv ' + packet_recv_folder + '*.packet ' + packet_process_folder)
+##        except:
+##            print('excepted, no files?')
+
     else:
         print('Packet from: ' + parse_packet['from'] + ' Format: ' + parse_packet['format'] + ' - ' + time.strftime('%H:%M:%S'))
+    try:
+        for pckt in os.listdir(packet_recv_folder):
+            print(pckt)
+            #os.system('mv ' + packet_recv_folder + pckt + ' ' + packet_process_folder)
+            shutil.copyfile(packet_recv_folder + pckt, packet_process_folder + pckt)
+            os.remove(packet_recv_folder + pckt)
+            #print('packet moved')
+    except:
+            print('error with moving')
 
-    
-
+    #shutil.move(packet_recv_folder + '*', packet_process_folder)
 AIS = aprslib.IS(aprs_callsign, host=aprs_is_host, passwd=aprs_passcode, port=aprs_is_port)
 Path(packet_recv_folder).mkdir(parents=True, exist_ok=True)
 
 #AIS = aprslib.IS('N0CALL', host='rotate.aprs.net', passwd='-1', port=10152)
 
-# Sends filter settings to APRS servver
+# Sends filter settings to APRS server
+print(armds_intro)
+
 AIS.set_filter(aprs_filter)
 # Connect to APRS-IS
 AIS.connect()
 
-print('APRS Receive')
+print('APRS-IS Packet Receiver')
 print('Initializing... Waiting for packets.')
 AIS.consumer(aprs_packet_receive_write, raw=True)
 
