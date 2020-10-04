@@ -84,18 +84,17 @@ class location_db:
     connection = sqlite3.connect(db_file)
     cursor = connection.cursor()
     #rows = cursor.execute("SELECT callsign, lat, lon, time FROM locations WHERE callsign = ?",(callsign,),).fetchall()
-
-
     def initialize_db(self):
         '''Set up DB'''
         with self.connection:
             self.cursor.execute("CREATE TABLE locations (callsign TEXT, lat INTERGER, lon INTEGER, time TEXT)")
+            self.cursor.execute("PRAGMA journal_mode=WAL;")
             print('Initialize DB')
     def add_location(self, callsign, lat, lon, time):
         '''Add loction to db'''
         with self.connection:
             self.cursor.execute("INSERT INTO locations VALUES (?, ?, ?, ?)", (str(callsign), lat, lon, time))
-            print('Added location for ' + callsign)
+            print('Added location for ' + callsign) # + ' - ' + time.strftime('%H:%M:%S'))
     def get_location(self, callsign):
         '''return list of tuples with location'''
         with self.connection:
