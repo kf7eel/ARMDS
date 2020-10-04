@@ -141,6 +141,30 @@ class callook:
     def get_city(self):
         return self.callook_city
 
+class weather:
+    '''Use open weather map for weather data'''
+    def __init__(self):
+        global owm_API_key
+        self.api_url = 'http://api.openweathermap.org/data/2.5/'
+        self.api_current = 'weather?'
+        self.lat = 'lat='
+        self.lon = '&lon='
+        self.city = 'q='
+        self.app_id = '&appid=' + owm_API_key + '&units=imperial'
+        # return temp, pressure, wind, and wind dir
+
+    def current_loc(self, lat, lon):
+        url = self.api_url + self.api_current + self.lat + str(lat) + self.lon + str(lon) + self.app_id
+        wx_data = requests.get(url).json()
+        return wx_data['name'] , wx_data['sys']['country'], wx_data['weather'][0]['main'], wx_data['main']['temp'], wx_data['main']['pressure'], wx_data['wind']['speed'], wx_data['wind']['deg']
+    def city_loc(self, city_name):
+        url = self.api_url + self.api_current + self.city + city_name + self.app_id
+        wx_data = requests.get(url).json()
+        print(url)
+        return wx_data['name'] , wx_data['sys']['country'], wx_data['weather'][0]['main'], wx_data['main']['temp'], wx_data['main']['pressure'], wx_data['wind']['speed'], wx_data['wind']['deg']
+        
+
+
 global AIS, aprs_message_packet, post_path
 
 aprs_message_packet = None
@@ -322,7 +346,7 @@ def aprs_receive_loop(packet):
                     station_loc = re.sub('@LOC ','', str(parse_packet['message_text']))
                     print(station_loc)
                     if db.exists(station_loc) == True:
-                        reply_aprs('Last known grid square for ' + str(station_loc) + ': ' + str(mh.to_maiden(db.get_location(station_loc)[0][1], db.get_location(station_loc)[0][2])))
+                        reply_aprs('Last known grid square for ' + str(station_loc) + ': ' + str(mh.to_maiden(db.get_location(station_loc)[0][1], db.get_location(station_loc)[0][2])) + ' Last time heard: ' + db.get_location(station_loc)[0][3])
                     else:
                         reply_aprs('Unable to find location for ' + str(station_loc))
 
@@ -341,6 +365,42 @@ def aprs_receive_loop(packet):
                         reply_aprs('SYS CMD failed. Exception raised.')
 
 
+                if '@WX' in parse_packet['message_text']:
+                    aprs_ack()
+                    the_wx = weather()
+                    db = location_db()
+                    lat = db.get_location(str(parse_packet['from']))[0][1]
+                    lon = db.get_location(str(parse_packet['from']))[0][2]
+                    try:                    
+                        if re.sub('@WX |@WX','', parse_packet['message_text']) == '':
+                            wx = the_wx.current_loc(lat, lon)
+                            reply_aprs(str(wx[0] + ', ' + wx[1] + ' - ' + wx[2] + '. ' + str(wx[3]) + 'F Pressure: ' + str(wx[4]) + 'hPa Wind: ' + str(wx[5]) + 'mph Direction: ' + str(wx[6]) + ' deg'))
+
+                        if re.sub('@WX |@WX','', parse_packet['message_text']) != '':
+                            wx = the_wx.city_loc(str(re.sub('@WX |@WX','', parse_packet['message_text'])))
+                            reply_aprs(str(wx[0] + ', ' + wx[1] + ' - ' + wx[2] + '. ' + str(wx[3]) + 'F Pressure: ' + str(wx[4]) + 'hPa Wind: ' + str(wx[5]) + 'mph Direction: ' + str(wx[6]) + ' deg'))
+
+                        else:
+                            print('oops')
+                        
+                    except:
+                        reply_aprs('Unable to get weeather.')
+##                        print('unable to find')
+
+                if '@GRIDWX' in parse_packet['message_text']:
+                    aprs_ack()
+                    the_wx = weather()
+                    db = location_db()
+                    grid_square = re.sub('@GRIDWX ','', parse_packet['message_text'])
+                    lat = mh.to_location(grid_square)[0]
+                    lon = mh.to_location(grid_square)[1]
+                    try:
+                        wx = the_wx.current_loc(lat, lon)
+                        reply_aprs(str(wx[0] + ', ' + wx[1] + ' - ' + wx[2] + '. ' + str(wx[3]) + 'F Pressure: ' + str(wx[4]) + 'hPa Wind: ' + str(wx[5]) + 'mph Direction: ' + str(wx[6]) + ' deg'))
+
+                    except:
+                        reply_aprs('Unable to get weather for grid square.')
+                        
                 if '@CALL' in parse_packet['message_text']:
                     aprs_ack()
                     look = callook()
@@ -355,10 +415,13 @@ def aprs_receive_loop(packet):
                 if parse_packet['message_text'] == 'GRID':
                     aprs_ack()
                     db = location_db()
-                    loc_data = db.get_location(parse_packet['from'])
-                    reply_aprs('Your gird square: ' + str(mh.to_maiden(loc_data[0][1], loc_data[0][2])))
-                    print(mh.to_maiden(loc_data[0][1], loc_data[0][2]))
-                    
+                    try:
+                        loc_data = db.get_location(parse_packet['from'])
+                        reply_aprs('Your gird square: ' + str(mh.to_maiden(loc_data[0][1], loc_data[0][2])))
+                        print(mh.to_maiden(loc_data[0][1], loc_data[0][2]))
+                    except:
+                        reply_aprs('Unable to obtain grid square.')
+                        
 ######################---TDS---#############################
 
                 #if 1 == use_tds:

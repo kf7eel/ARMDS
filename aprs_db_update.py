@@ -44,9 +44,9 @@ def aprs_packet_receive_write(packet):
     #See if packet fit definition of what we want to keep coordinates for
     if 'longitude' in parse_packet: # and parse_packet['messagecapable'] == True: # == True:
         if db.exists(parse_packet['from']) == True:
-            db.modify_location(parse_packet['from'], parse_packet['latitude'], parse_packet['longitude'], time.strftime('%H:%M:%S'))
+            db.modify_location(parse_packet['from'], parse_packet['latitude'], parse_packet['longitude'], datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC'))
         if db.exists(parse_packet['from']) == False:
-            db.add_location(parse_packet['from'], parse_packet['latitude'], parse_packet['longitude'], time.strftime('%H:%M:%S'))
+            db.add_location(parse_packet['from'], parse_packet['latitude'], parse_packet['longitude'], datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC'))
  
 print(armds_intro)
 
