@@ -42,12 +42,13 @@ def aprs_packet_receive_write(packet):
     parse_packet = aprslib.parse(pak_str)
     database_call = db.get_location(parse_packet['from'])
     #See if packet fit definition of what we want to keep coordinates for
-##    if 'messagecapable' in parse_packet and parse_packet['messagecapable'] == True: # == True:
+    #if 'messagecapable' in parse_packet and parse_packet['messagecapable'] == True: # == True:
+##    if 'longitude' in parse_packet:
 ##        if db.exists(parse_packet['from']) == True:
 ##            db.modify_location(parse_packet['from'], parse_packet['latitude'], parse_packet['longitude'], time.strftime('%H:%M:%S'))
 ##        if db.exists(parse_packet['from']) == False:
 ##            db.add_location(parse_packet['from'], parse_packet['latitude'], parse_packet['longitude'], time.strftime('%H:%M:%S'))
-##        
+        
     if 'message' == parse_packet['format']:
         if aprs_callsign == parse_packet['addresse'] and 'message_text' in parse_packet:
             with open(packet_recv_folder + str(random.randint(1000, 9999)) + '.packet', "w") as packet_write_file:

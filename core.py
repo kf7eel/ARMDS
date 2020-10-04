@@ -49,6 +49,13 @@ from pathlib import Path
 #SQLite
 import sqlite3
 from contextlib import closing
+
+#Maidenhead
+import maidenhead as mh
+
+#Callook
+import requests
+
 # APRS Functions
 
 armds_version = 'v1.101 '
@@ -120,7 +127,19 @@ class location_db:
         else:
                 return True
 
+class callook:
+    '''Query callook.info for data'''
+    def call(self, callsign):
+        self.callook_url = 'https://callook.info/' + callsign + '/json'
+        self.callook_info = requests.get(self.callook_url).json()
+        self.callook_name = self.callook_info['name']
+        self.callook_city = self.callook_info['address']['line2']
 
+    def get_name(self):
+        #global callsign_input
+        return self.callook_name
+    def get_city(self):
+        return self.callook_city
 
 global AIS, aprs_message_packet, post_path
 
@@ -297,8 +316,15 @@ def aprs_receive_loop(packet):
                 #reply_sms(dmr_sms_aprs_reply)
                     #time.sleep(1)
 
-                if '!' == parse_packet['message_text']:
-                    reply_aprs('Unknown')
+                if '@LOC' in parse_packet['message_text']:
+                    aprs_ack()
+                    db = location_db()
+                    station_loc = re.sub('@LOC ','', str(parse_packet['message_text']))
+                    print(station_loc)
+                    if db.exists(station_loc) == True:
+                        reply_aprs('Last known grid square for ' + str(station_loc) + ': ' + str(mh.to_maiden(db.get_location(station_loc)[0][1], db.get_location(station_loc)[0][2])))
+                    else:
+                        reply_aprs('Unable to find location for ' + str(station_loc))
 
                 else:
                     try:
@@ -315,7 +341,24 @@ def aprs_receive_loop(packet):
                         reply_aprs('SYS CMD failed. Exception raised.')
 
 
-
+                if '@CALL' in parse_packet['message_text']:
+                    aprs_ack()
+                    look = callook()
+                    try:
+                        print('finding call info')
+                        look.call(str(re.sub('@CALL ','', parse_packet['message_text'])))
+                        reply_aprs(look.get_name() + ' - ' + look.get_city())
+                    except:
+                        reply_aprs('Unable to find ' + str(re.sub('@CALL ','', parse_packet['message_text'])))
+                        print('unable to find')
+                    
+                if parse_packet['message_text'] == 'GRID':
+                    aprs_ack()
+                    db = location_db()
+                    loc_data = db.get_location(parse_packet['from'])
+                    reply_aprs('Your gird square: ' + str(mh.to_maiden(loc_data[0][1], loc_data[0][2])))
+                    print(mh.to_maiden(loc_data[0][1], loc_data[0][2]))
+                    
 ######################---TDS---#############################
 
                 #if 1 == use_tds:
