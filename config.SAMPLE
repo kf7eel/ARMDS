@@ -68,6 +68,7 @@ aprs_status_text_3 = 'Status 3'
 aprs_symbol_table = '/' #Primary table
 aprs_symbol = 'I' # "File Server - ?, TCP-IP - I" symbol
 
+beacon_status_interval = 60*45 #45 minutes
 
 
 # Location packet

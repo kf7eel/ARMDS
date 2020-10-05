@@ -26,35 +26,44 @@
 from core import *
 from config import *
 import time
+from automated_packets import *
 
 # "APRS - unknown software, 
-loc_1_packet = aprs_callsign + '>APRS,TCPIP*:' + '=' + latitude + '/' + longitude + aprs_symbol + aprs_symbol_table + 'A=' + altitude + ' ' + aprs_1_comment
+##loc_1_packet = aprs_callsign + '>APRS,TCPIP*:' + '=' + latitude + '/' + longitude + aprs_symbol + aprs_symbol_table + 'A=' + altitude + ' ' + aprs_1_comment
+##
+##loc_2_packet = aprs_callsign + '>APRS,TCPIP*:' + '=' + latitude + '/' + longitude + aprs_symbol + aprs_symbol_table + 'A=' + altitude + ' ' + aprs_2_comment
+##
+##loc_3_packet = aprs_callsign + '>APRS,TCPIP*:' + '=' + latitude + '/' + longitude + aprs_symbol + aprs_symbol_table + 'A=' + altitude + ' ' + aprs_3_comment
+##
+##loc_4_packet = aprs_callsign + '>APRS,TCPIP*:' + '=' + latitude + '/' + longitude + aprs_symbol + aprs_symbol_table + 'A=' + altitude + ' ' + aprs_4_comment
+##
+##status_1_packet = aprs_callsign + '>APRS,TCPIP*:' + '>' + aprs_status_text_1
+##
+##status_2_packet = aprs_callsign + '>APRS,TCPIP*:' + '>' + aprs_status_text_2
+##
+##status_3_packet = aprs_callsign + '>APRS,TCPIP*:' + '>' + aprs_status_text_3
 
-loc_2_packet = aprs_callsign + '>APRS,TCPIP*:' + '=' + latitude + '/' + longitude + aprs_symbol + aprs_symbol_table + 'A=' + altitude + ' ' + aprs_2_comment
+def rand_status():
+    return random.randint(1,6)
 
-loc_3_packet = aprs_callsign + '>APRS,TCPIP*:' + '=' + latitude + '/' + longitude + aprs_symbol + aprs_symbol_table + 'A=' + altitude + ' ' + aprs_3_comment
-
-loc_4_packet = aprs_callsign + '>APRS,TCPIP*:' + '=' + latitude + '/' + longitude + aprs_symbol + aprs_symbol_table + 'A=' + altitude + ' ' + aprs_4_comment
-
-status_1_packet = aprs_callsign + '>APRS,TCPIP*:' + '>' + aprs_status_text_1
-
-status_2_packet = aprs_callsign + '>APRS,TCPIP*:' + '>' + aprs_status_text_2
-
-status_3_packet = aprs_callsign + '>APRS,TCPIP*:' + '>' + aprs_status_text_3
-
-
-def send_mult_packets(packet_1, packet_2):
-    print('Sending the following packets: ')
-    packet_write(packet_1)
-    packet_write(packet_2)
+def rand_comment():
+    return random.randint(1,5)
+    
+##def send_mult_packets(packet_1, packet_2):
+##    print('Sending the following packets: ')
+##    #packet_write(loc_packet)
+##    #packet_write(status_packet)
+##    print(packet_1)
+##    print(packet_2)
 
 print(armds_intro)
 
 print('APRS Beacon Packets')
 while 4 < 5:
-    send_mult_packets(loc_1_packet, status_1_packet)
-    time.sleep(2400)
-    send_mult_packets(loc_2_packet, status_2_packet)
-    time.sleep(2400)
-    send_mult_packets(loc_3_packet, status_3_packet)
-    time.sleep(2400)
+    #print(packet.send_my_position(comments[rand_comment()]))
+    packet_write(packet.send_my_position(comments[rand_comment()]))
+    time.sleep(2)
+    #print(packet.send_my_status(status[rand_status()]))
+    packet_write(packet.send_my_status(status[rand_status()]))
+    time.sleep(beacon_status_interval)
+

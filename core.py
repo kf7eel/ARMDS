@@ -35,9 +35,9 @@
 
 # Import modules
 from config import *
-from user_commands import *
+##from user_commands import *
 from system_commands import *
-import user_functions
+####import user_functions
 import system_commands
 import re, binascii, time, os, datetime, smtplib, random
 import email, poplib
@@ -56,9 +56,13 @@ import maidenhead as mh
 #Callook
 import requests
 
+#packet formation
+from packet_class import *
 # APRS Functions
 
-armds_version = 'v1.101 '
+armds_version = 'v1.102 '
+
+my_packet = tcp_ip()
 
 armds_intro = '''
 ------------------------------------------------------------------------------
@@ -185,68 +189,55 @@ def yaac_aprs_tcp_send(yaac_msg_source, yaac_msg_dest, yaac_message):
 
 
 def packet_write(packet_data):
+    print(aprslib.parse(packet_data)['path'])
     with open(packet_send_folder + str(random.randint(1000, 9999)) + '.packet', "w") as packet_write_file:
         packet_write_file.write(packet_data)
 
 
 def aprs_ack():
-    global AIS, AIS_send
     print('Send ACK')
-    time.sleep(1)
+    time.sleep(0.25)
     if use_yaac == 0:
         if 'msgNo' in parse_packet:
-            #print('Connecting to APRS-IS')
-            from_space = parse_packet['from']
-            packet_write(aprs_callsign + '>APRS,TCPIP*:' + ':' + from_space.ljust(9) + ':ack'+parse_packet['msgNo'])
-            print(aprs_callsign + '>APRS,TCPIP*:' + ':' + from_space.ljust(9) + ':ack'+parse_packet['msgNo'])
+            if 'DUMMY*' in str(parse_packet['path']):
+                pass
+            else:
+                packet_write(my_packet.msg_ack(parse_packet['msgNo']))
+                print(my_packet.msg_ack(parse_packet['msgNo']))
         else:
             print('No ACK required, not sending ACK.')
             
     if use_yaac == 1:
         print('todo')
 def reply_aprs_no_ack(message):
-    global AIS, AIS_send
     print('Replying with message, no ACK requested: ' + message)
-    time.sleep(1)
-    aprs_reply_to = parse_packet['from']
+    time.sleep(0.25)
     if use_yaac == 0:
-        from_space = parse_packet['from']
-        packet_write(aprs_callsign + '>APRS,TCPIP*:' + ':' + aprs_reply_to.ljust(9) + ':' + message)
-        print(aprs_callsign + '>APRS,TCPIP*:' + ':' + aprs_reply_to.ljust(9) + ':' + message) #+ '{' + str(random.randint(1,99)) + str(random.randint(1,9)))
+        if 'DUMMY*' in str(parse_packet['path']):
+            pass
+        else:
+            packet_write(my_packet.msg_reply_no_ack(message))
+            print(my_packet.msg_reply_no_ack(message))        
     if use_yaac == 1:
         print('todo')
 
     
 def reply_aprs(message):
-    global AIS, AIS_send
     print('Replying with message: ' + message)
-    time.sleep(1)
-    aprs_reply_to = parse_packet['from']
+    time.sleep(0.25)
     if use_yaac == 0:
-        from_space = parse_packet['from']
-        packet_write(aprs_callsign + '>APRS,TCPIP*:' + ':' + aprs_reply_to.ljust(9) + ':' + message + '{' + str(random.randint(1,99)) + str(random.randint(1,9)))
-        print(aprs_callsign + '>APRS,TCPIP*:' + ':' + aprs_reply_to.ljust(9) + ':' + message + '{' + str(random.randint(1,99)) + str(random.randint(1,9)))
+        if 'DUMMY*' in parse_packet['path']:
+            pass
+        else:
+            packet_write(my_packet.msg_reply(message))
+            print(my_packet.msg_reply(message))
     if use_yaac == 1:
         print('todo')
 
-def aprs_send_msg(aprs_to, aprs_message_text):
-    global aprs_message_packet
-    # Generate message number by adding character count to number and dding current time in seconds. Dirty, but works.
-    aprs_message_number = str(len(aprs_message_text)) + time.strftime('%s')
-    if len(aprs_to) < 9: 
-        aprs_to_spaces = aprs_to.ljust(9)
-    if len(aprs_to) == 9:
-        aprs_to_spaces = aprs_to
-    else:
-        print('greater than 9')
-        aprs_to_spaces = aprs_to.ljust(9)
-    aprs_message_packet = aprs_callsign + '>APRS,TCPIP*:' + ':' + aprs_to_spaces +':'+ aprs_message_text + '{' + aprs_message_number
-    #print(aprs_to_spaces)
-    print('Connecting to APRS-IS')
-    time.sleep(1)
-    print('Sending...')
-    packet_write(aprs_message_packet)
-    print(aprs_message_packet)
+def aprs_send_msg(to_call, message):
+    packet_write(my_packet.msg_send(to_call, message))
+    print(my_packet.msg_send(to_call, message))
+
 
 def aprs_receive_loop(packet):
     global parse_packet, aprs_message_packet, AIS_send
@@ -254,7 +245,6 @@ def aprs_receive_loop(packet):
         # Parse packet into dictionary
     print(packet)
     parse_packet = aprslib.parse(packet)
-
     ### TDS Definitions ###################
     aprs_call = parse_packet['from']
     #call = parse_packet['from']
@@ -270,23 +260,6 @@ def aprs_receive_loop(packet):
     tiny_page_data = tiny_page_name.upper() + ' : ' + tiny_page_content + '\n'
                     
     #########################################
- #   print('Bulletin from: ' + parse_packet['from'] + ' Message: ' + parse_packet['message_text'])
-
-            #if parse_packet['format'] == 'bulletin':
-    #if 'bulletin' in parse_packet['format']:
-        #print('Bulletin Received...')
-        #print('Bulletin from: ' + parse_packet['from'] + ' Message: ' + parse_packet['message_text'])
-        #tg_sms_send('Bulletin from: ' + parse_packet['from'] + ' Message: ' + parse_packet['message_text'])
-        #time.sleep(3)
-  #  if 'message' == parse_packet['format']:# and parse_packet['response'] != 'ack': #and aprs_callsign == parse_packet['addresse']:
-       
-        #if 'ack' == parse_packet['response']:
-         #   print('Received ACK addressed to: ' + parse_packet['addresse'])
-            #else:
-             #   print('Message from: ' + parse_packet['from'] + ' To: ' + parse_packet['addresse'] + ' Message: ' + parse_packet['message'])
-              
-   #     if aprs_callsign == parse_packet['addresse'] and 'message_text' in parse_packet:
-
     try:
                 try:
                     if 'E-' in parse_packet['message_text']:
@@ -311,34 +284,6 @@ def aprs_receive_loop(packet):
                     print('E-Mail error, check config')
                     reply_aprs('Error: Unable to send E-Mail.')
                       
-        # Look for command in dictionary, user defined
-                else:
-                    try:
-                        for key in cmd_list:
-                            if key == parse_packet['message_text']:
-                                print('User defined command: ')
-                                print(cmd_list[key])
-                                aprs_ack()
-                                cmd_list[key]()
-                                return
-                    except:
-                        print('User command failed, exception raised.')
-                        reply_aprs('USR CMD failed. Exception raised.')
-
-                #if aprs_callsign == parse_packet['addresse']:
-                 #   print('APRS message addressed to hotspot callsign')
-                  #  print('APRS message: ' + parse_packet['message_text'] + ' From: ' + parse_packet['from'])
-                   # aprs_ack()
-            #    # Send message to DMR SMS
-            #        print(time.strftime('%H:%M:%S - %m/%d/%Y'))
-            #        # send to network or modem defined in config
-            #        shark.do_send_sms('1', '2', '9', aprs_tg_network_reply,'APRS MSG from: ' + parse_packet['from'] + '. ' + parse_packet['message_text'])
-            #        print('5 second reset')
-            #        time.sleep(5)
-                #AIS.connect()
-                #dmr_sms_aprs_reply = 'APRS MSG from: ' + parse_packet['from'] + '. ' + parse_packet['message_text']
-                #reply_sms(dmr_sms_aprs_reply)
-                    #time.sleep(1)
 
                 if '@LOC' in parse_packet['message_text']:
                     aprs_ack()
@@ -354,7 +299,7 @@ def aprs_receive_loop(packet):
                     try:
                         for sys_key in sys_cmd_list:
                             if sys_key == parse_packet['message_text']:
-                                print('System command: ')
+                                #print('System command: ')
                                 print(sys_cmd_list[sys_key])
                                 aprs_ack()
                                 sys_cmd_list[sys_key]()

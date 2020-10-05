@@ -38,49 +38,57 @@ class Initialize:
 ##def initialize():
 ##    import time, os
 # Send user system uptime
+
 def uptime():
     import time, os, core
-    from core import reply_aprs
+    from core import reply_aprs_no_ack
     print('Getting uptime...')
     uptime = os.popen('uptime').read()
-    reply_aprs(str(uptime))
+    reply_aprs_no_ack(str(uptime))
 
 # Replies to user by sending what was received
 def echo():
     import time, os, core, parse_packet
-    from core import reply_aprs
-    reply_aprs(parse_packet['message_text'])
+    from core import reply_aprs_no_ack
+    reply_aprs_no_ack(parse_packet['message_text'])
     print("Echoing SMS")
 # Return current time
 def time():
     import time, os, core
-    from core import reply_aprs
+    from core import reply_aprs_no_ack
     print('Getting time...')
     current_time = time.strftime('%H:%M %A %B %d, %Y - Timezone: %z')
-    reply_aprs(current_time)
+    reply_aprs_no_ack(current_time)
 
 def ping():
-    from core import reply_aprs
-    import time, os, core
+    from core import reply_aprs_no_ack
+    import time, os, core, maidenhead
     print("Received ping...")
     time.sleep(0.5)
     print("Pong")
-    reply_aprs('Pong '+time.strftime('%H:%M:%S - %m/%d/%Y'))
+    reply_aprs_no_ack('Pong '+time.strftime('%H:%M:%S - %m/%d/%Y'))
 
+##def maidenhead():
+##    #from core import reply_aprs
+##    import time, os, core
+##    loc_data = db.get_location(parse_packet['from'])
+##    reply_aprs(mh.to_maiden(loc_data[0][1], loc_data[0][2]))
+##    print(mh.to_maiden(loc_data[0][1], loc_data[0][2]))
 
 def command_help():
-    from core import reply_aprs
+    from core import reply_aprs_no_ack
     import time, os, core
-    print('\n' + "--------------------------------------" + '\n')
-    print('Here are the available commands: ')
-    print('\n')
-    print('HELP - prints current message')
-    print('ECHO - replies eniter message back to user')
-    print('TIME - current local time')
-    print('UPTIME - uptime of host system')
-    print('PING - replies with pong')
-    print('ID - returns your DMR ID')
-    print('If "TO-" and "@" are in message, will send email to address.')
-    print('\n' + "--------------------------------------" + '\n')
-    reply_aprs('See https://armds.net for help and information.')
+##    print('\n' + "--------------------------------------" + '\n')
+##    print('Here are the available commands: ')
+##    print('\n')
+##    print('HELP - prints current message')
+##    print('ECHO - replies eniter message back to user')
+##    print('TIME - current local time')
+##    print('UPTIME - uptime of host system')
+##    print('PING - replies with pong')
+##    print('ID - returns your DMR ID')
+##    print('If "TO-" and "@" are in message, will send email to address.')
+##    print('\n' + "--------------------------------------" + '\n')
+    reply_aprs_no_ack('See https://armds.net for help and information.')
         
+

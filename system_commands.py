@@ -38,4 +38,5 @@ sys_cmd_list = {
 'ECHO': echo,
 'PING': ping,
 'HELP': command_help,
+##'GRID': maidenhead,
 }
