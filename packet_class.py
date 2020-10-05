@@ -24,20 +24,29 @@
 
 from config import *
 #from core import *
-import aprslib, random
+#import aprslib, random
 
 #parse_packet = aprslib.parse(packet)
 
 #parse_packet = aprslib.parse('KF7EEL-2>APDR15,TCPIP*,qAC,T2FINLAND::ARMDS    :PING{49')
 # For some reason, this must be here.
-parse_packet = aprslib.parse('FROMCALL>APDR15,TCPIP*,qAC,T2FINLAND::TOCALL   :message')
+#parse_packet = aprslib.parse('FROMCALL>APDR15,TCPIP*,qAC,T2FINLAND::TOCALL   :message')
+
+##parse_packet = ' '
+
+##def get_to_call(packet):
+##    global call_from_packet
+##    parse_packet = aprslib.parse(packet)
+##    call_from_packet = str(aprslib.parse(packet)['from']).ljust(9)
+##    return call_from_packet
 
 class aprs_packet_construct: #(to_call):
     global aprs_callsign, latitude, longitude, aprs_symbol, aprs_symbol_table, parse_packet
     '''Format various APRS packets'''
-    def __init__(self):
+    def __init__(self, to_call):
+        global parse_packet
         self.aprs_callsign = aprs_callsign
-        self.to_call = str(parse_packet['from']).ljust(9)
+        self.to_call = str(to_call).ljust(9)
         self.message_no = '{' + str(random.randint(1,99)) + str(random.randint(1,9))
         # Dummy path will not be uploaded
         self.my_path_dummy = '>ARMDS,DUMMY*:'
@@ -120,8 +129,9 @@ class dummy_packet(aprs_packet_construct):
         packet =  self.path_dummy + aprs_packet_construct.msg_send(self, to_call, message)
         return packet
 
-#pkt = tcp_ip()
+#get_to_call('FROMCALL>APDR15,TCPIP*,qAC,T2FINLAND::TOCALL   :message')
 
-#print(pkt.msg_send('TEST', 'blob'))
+####pkt = tcp_ip('hello')
+##print(pkt.msg_ack('2'))
 #print(to_call('gh'))
 

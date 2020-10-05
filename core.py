@@ -62,7 +62,7 @@ from packet_class import *
 
 armds_version = 'v1.102 '
 
-my_packet = tcp_ip()
+#my_packet = tcp_ip()
 
 armds_intro = '''
 ------------------------------------------------------------------------------
@@ -240,11 +240,13 @@ def aprs_send_msg(to_call, message):
 
 
 def aprs_receive_loop(packet):
-    global parse_packet, aprs_message_packet, AIS_send
+    global parse_packet, aprs_message_packet, AIS_send, my_packet
     #pak_str = packet.decode('utf-8',errors='ignore').strip()
         # Parse packet into dictionary
     print(packet)
     parse_packet = aprslib.parse(packet)
+##    parsed_from = str(parse_packet['from']).ljust(9)
+    my_packet = tcp_ip(str(parse_packet['from']).ljust(9))
     ### TDS Definitions ###################
     aprs_call = parse_packet['from']
     #call = parse_packet['from']
